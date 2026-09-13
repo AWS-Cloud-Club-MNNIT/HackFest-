@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { MailPlus } from "lucide-react";
 import API from "../services/api";
 
 const BrowseTeammates = () => {
   const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [skill, setSkill] = useState("");
   const [branch, setBranch] = useState("");
   const [college, setCollege] = useState("");
@@ -35,13 +38,39 @@ const BrowseTeammates = () => {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const authRes = await API.get("/auth/me");
+      setCurrentUser(authRes.data.user);
+    } catch (error) {
+      // Not logged in, that's fine
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchCurrentUser();
   }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
     fetchUsers();
+  };
+
+  const handleInvite = async (toUserId) => {
+    if (!currentUser) {
+      return toast.error("Please login to invite teammates.");
+    }
+    if (!currentUser.teamId) {
+      return toast.error("You must create a team first before you can invite others.");
+    }
+
+    try {
+      await API.post("/invites", { teamId: currentUser.teamId, toUserId });
+      toast.success("Invite sent successfully!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send invite");
+    }
   };
 
   return (
@@ -129,42 +158,56 @@ const BrowseTeammates = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-        {users.map((user) => (
+        {users.map((u) => (
           <div
-            key={user._id}
-            className="bg-[#101522] border border-[#d4af37]/20 rounded-2xl p-6 hover:border-[#d4af37]/50 transition"
+            key={u._id}
+            className="bg-[#101522] border border-[#d4af37]/20 rounded-2xl p-6 hover:border-[#d4af37]/50 transition flex flex-col justify-between"
           >
+            <div>
+              <h3 className="text-xl font-semibold text-[#d4af37]">
+                {u.name}
+              </h3>
 
-            <h3 className="text-xl font-semibold text-[#d4af37]">
-              {user.name}
-            </h3>
+              <p className="text-gray-400 text-sm mt-2">
+                {u.college || "College not added"}
+              </p>
 
-            <p className="text-gray-400 text-sm mt-2">
-              {user.college || "College not added"}
-            </p>
+              <p className="text-gray-500 text-sm mt-1">
+                {u.branch || "Branch not added"}
+                {u.year && ` • Year ${u.year}`}
+              </p>
 
-            <p className="text-gray-500 text-sm mt-1">
-              {user.branch || "Branch not added"}
-              {user.year && ` • Year ${user.year}`}
-            </p>
-
-            {/* Skills */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {user.skills?.map((item, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 text-xs rounded-full bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20"
-                >
-                  {item}
-                </span>
-              ))}
+              {/* Skills */}
+              <div className="flex flex-wrap gap-2 mt-4 mb-6">
+                {u.skills?.map((item, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 text-xs rounded-full bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            <button
-              className="w-full mt-5 py-2.5 rounded-lg border border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition"
-            >
-              View Profile
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(u._id);
+                  toast.success("User ID copied to clipboard!");
+                }}
+                className="w-1/3 py-2.5 rounded-lg border border-gray-600 text-gray-400 hover:text-white transition text-xs font-bold"
+              >
+                Copy ID
+              </button>
+              <button
+                onClick={() => handleInvite(u._id)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+              >
+                <MailPlus className="w-4 h-4" />
+                Invite
+              </button>
+            </div>
 
           </div>
         ))}
