@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Set public DNS servers to resolve MongoDB Atlas SRV query issue on local network/DNS
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGO_URI;
-    
     if (!mongoURI) {
       console.error('\n❌ FATAL ERROR: MONGO_URI is missing!');
       console.error('👉 Please make sure you have created a .env file and added your MONGO_URI string.\n');

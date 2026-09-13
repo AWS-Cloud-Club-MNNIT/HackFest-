@@ -1,5 +1,6 @@
 
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import OrbitChip from './visuals/OrbitChip'
 import { staggerContainer, staggerItem } from './common/motion'
 
@@ -144,18 +145,18 @@ export default function Hero() {
           className="mt-9 flex flex-wrap items-center justify-center gap-4"
         >
           {/* Primary CTA */}
-          <motion.a
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            href="#sorting"
-            onClick={handleEnterMagic}
-            className="group relative flex items-center gap-2.5 rounded-md border-2 border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_0_35px_rgba(212,175,55,0.6)] transition hover:border-[#ffffff] hover:shadow-[0_0_55px_rgba(212,175,55,0.9)]"
-          >
-            <span>REGISTER NOW</span>
-            <svg className="h-4 w-4 text-[#d4af37] transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
-            </svg>
-          </motion.a>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/signup"
+              className="group relative flex items-center gap-2.5 rounded-md border-2 border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_0_35px_rgba(212,175,55,0.6)] transition hover:border-[#ffffff] hover:shadow-[0_0_55px_rgba(212,175,55,0.9)]"
+            >
+              <span>REGISTER NOW</span>
+              <svg className="h-4 w-4 text-[#d4af37] transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
+              </svg>
+            </Link>
+          </motion.div>
+
 
           {/* Secondary CTA */}
           <motion.a
