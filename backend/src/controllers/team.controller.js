@@ -1,5 +1,6 @@
 import Team from '../models/Team.js';
 import Event from '../models/Event.js';
+import User from '../models/User.js';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 
@@ -7,15 +8,19 @@ import QRCode from 'qrcode';
 export const createTeam = async (req, res) => {
   try {
     const { name, domain, eventId } = req.body;
-    
-    // TODO: Change this mock when Auth is fully implemented.
-    // In the future, this will securely come from req.userId (from JWT)
-    const leaderId = req.userId; 
+    const leaderId = req.user._id;
 
-    // TODO: In real implementation, check if Event registrationDeadline has passed
+    if (req.user.teamId) {
+      return res.status(400).json({ message: 'You are already in a team' });
+    }
+
     const event = await Event.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (new Date() > new Date(event.registrationDeadline)) {
+      return res.status(400).json({ message: 'Registration deadline has passed' });
+    }
+    if (domain && !event.domains.includes(domain)) {
+      return res.status(400).json({ message: 'Invalid domain selected' });
     }
 
     const newTeam = new Team({
@@ -29,10 +34,16 @@ export const createTeam = async (req, res) => {
 
     await newTeam.save();
 
-    // TODO: Update the User model to set their user.teamId to newTeam._id
+    await User.findByIdAndUpdate(leaderId, { 
+      teamId: newTeam._id, 
+      lookingForTeam: false 
+    });
 
     res.status(201).json(newTeam);
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Team name already exists for this event' });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -40,9 +51,7 @@ export const createTeam = async (req, res) => {
 // GET /api/teams/:id
 export const getTeam = async (req, res) => {
   try {
-    // TODO: In future, use .populate('members') to get full user profiles
-    const team = await Team.findById(req.params.id);
-    
+    const team = await Team.findById(req.params.id).populate('members', '-passwordHash');
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.status(200).json(team);
   } catch (error) {
@@ -54,13 +63,19 @@ export const getTeam = async (req, res) => {
 export const updateDomain = async (req, res) => {
   try {
     const { domain } = req.body;
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findById(req.params.id).populate('eventId');
     
     if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.leaderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only team leader can change domain' });
+    }
+    if (team.lockedBySuperAdmin || new Date() > new Date(team.eventId.registrationDeadline)) {
+      return res.status(403).json({ message: 'Edits are locked (deadline passed or super admin lock)' });
+    }
+    if (!team.eventId.domains.includes(domain)) {
+      return res.status(400).json({ message: 'Invalid domain selected' });
+    }
 
-    // TODO: Verify if req.userId === team.leaderId.toString()
-    // TODO: Verify if Event deadline has passed
-    
     team.domain = domain;
     await team.save();
     
@@ -74,19 +89,27 @@ export const updateDomain = async (req, res) => {
 export const removeMember = async (req, res) => {
   try {
     const { id, userId } = req.params;
-    const team = await Team.findById(id);
+    const team = await Team.findById(id).populate('eventId');
     
     if (!team) return res.status(404).json({ message: 'Team not found' });
-
-    // TODO: Verify if req.userId === team.leaderId.toString()
-    // TODO: Verify if Event deadline has passed
+    if (team.leaderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only team leader can remove members' });
+    }
+    if (team.lockedBySuperAdmin || new Date() > new Date(team.eventId.registrationDeadline)) {
+      return res.status(403).json({ message: 'Edits are locked (deadline passed or super admin lock)' });
+    }
+    if (team.leaderId.toString() === userId) {
+      return res.status(400).json({ message: 'Leader cannot be removed. Transfer leadership or delete team.' });
+    }
+    if (!team.members.some(m => m.toString() === userId)) {
+      return res.status(404).json({ message: 'User is not in this team' });
+    }
 
     team.members = team.members.filter(member => member.toString() !== userId);
-    team.status = 'forming'; // Team is no longer full
+    team.status = 'forming';
     
     await team.save();
-    
-    // TODO: Update the removed User's profile to clear their teamId
+    await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     
     res.status(200).json(team);
   } catch (error) {
@@ -98,21 +121,25 @@ export const removeMember = async (req, res) => {
 export const leaveTeam = async (req, res) => {
   try {
     const { id } = req.params;
-    const team = await Team.findById(id);
-    
-    const userId = req.userId; // Mocked for now
+    const team = await Team.findById(id).populate('eventId');
+    const userId = req.user._id.toString();
 
     if (!team) return res.status(404).json({ message: 'Team not found' });
-    
-    // TODO: Verify if Event deadline has passed
-    // TODO: Ensure userId is NOT the leader (leader must transfer or delete)
+    if (team.lockedBySuperAdmin || new Date() > new Date(team.eventId.registrationDeadline)) {
+      return res.status(403).json({ message: 'Edits are locked (deadline passed or super admin lock)' });
+    }
+    if (team.leaderId.toString() === userId) {
+      return res.status(400).json({ message: 'Leader cannot leave. Transfer leadership or delete team.' });
+    }
+    if (!team.members.some(m => m.toString() === userId)) {
+      return res.status(404).json({ message: 'You are not in this team' });
+    }
 
     team.members = team.members.filter(member => member.toString() !== userId);
     team.status = 'forming';
     
     await team.save();
-    
-    // TODO: Update the User's profile to clear their teamId
+    await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     
     res.status(200).json({ message: 'Successfully left the team', team });
   } catch (error) {
@@ -125,19 +152,19 @@ export const getQRCode = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (!team.members.some(m => m.toString() === req.user._id.toString())) {
+      return res.status(403).json({ message: 'Not authorized for this team' });
+    }
     
-    // According to PDF spec, QR is only generated when team is complete
     if (team.status !== 'complete') {
       return res.status(400).json({ message: 'Team status is not complete yet' });
     }
 
-    // Generate a unique token if it doesn't have one
     if (!team.qrToken) {
       team.qrToken = crypto.randomBytes(20).toString('hex');
       await team.save();
     }
 
-    // Generate base64 QR code image using the qrToken
     const qrImageBase64 = await QRCode.toDataURL(team.qrToken);
     
     res.status(200).json({ 
@@ -153,9 +180,7 @@ export const getQRCode = async (req, res) => {
 export const scanQR = async (req, res) => {
   try {
     const { qrToken } = req.params;
-    
-    // TODO: In future, use .populate('members') to return full details
-    const team = await Team.findOne({ qrToken });
+    const team = await Team.findOne({ qrToken }).populate('members', '-passwordHash');
     
     if (!team) return res.status(404).json({ message: 'Invalid QR Token' });
     
