@@ -1,6 +1,7 @@
 import Invite from '../models/Invite.js';
 import Team from '../models/Team.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import crypto from 'crypto';
 
 // POST /api/invites
@@ -37,6 +38,14 @@ export const sendInvite = async (req, res) => {
 
     const invite = new Invite({ teamId, fromUserId, toUserId });
     await invite.save();
+
+    // Create a Notification for the invited user
+    await Notification.create({
+      userId: toUserId,
+      type: 'invite_received',
+      message: `You have been invited to join team: ${team.name}`,
+      relatedId: invite._id
+    });
 
     res.status(201).json(invite);
   } catch (error) {
@@ -110,6 +119,14 @@ export const acceptInvite = async (req, res) => {
       { toUserId: req.user._id, status: 'pending' },
       { status: 'cancelled' }
     );
+
+    // Notify the leader that their invite was accepted
+    await Notification.create({
+      userId: team.leaderId,
+      type: 'invite_accepted',
+      message: `${req.user.name} accepted your invite to join ${team.name}`,
+      relatedId: team._id
+    });
 
     res.status(200).json({ message: 'Invite accepted', team });
   } catch (error) {

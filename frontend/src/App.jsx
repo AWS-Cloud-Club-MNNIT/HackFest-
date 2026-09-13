@@ -145,11 +145,26 @@ function Home() {
 }
 
 
+import CreateTeam from './pages/CreateTeam'
+import MyTeam from './pages/MyTeam'
+import QRPass from './pages/QRPass'
+import OrganizerScan from './pages/OrganizerScan'
+import { Toaster } from 'react-hot-toast'
+
 // Main App
 function App() {
   return (
     <BrowserRouter>
-
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          style: {
+            background: '#10182b',
+            color: '#e8d7b5',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+          },
+        }}
+      />
       <Routes>
 
         {/* Homepage */}
@@ -158,10 +173,17 @@ function App() {
           element={<Home />}
         />
 
-        {/* Authentication */}
+        {/* Authentication & Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/super_admin" element={<SuperAdmin />} />
         <Route path="/browse-teammates" element={<div className="min-h-screen bg-[#080b16] text-[#e8d7b5] p-6 max-w-6xl mx-auto"><BrowseTeammates /></div>} />
+        
+        {/* Team & Check-in Routes */}
+        <Route path="/team/create" element={<CreateTeam />} />
+        <Route path="/team/my-team" element={<MyTeam />} />
+        <Route path="/team/qr-pass" element={<QRPass />} />
+        <Route path="/organizer/scan" element={<OrganizerScan />} />
+
         <Route
           path="/login"
           element={<Login />}

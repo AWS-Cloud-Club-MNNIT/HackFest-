@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import BrowseTeammates from "../components/BrowseTeammates";
+import DashboardNavbar from "../components/DashboardNavbar";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -43,24 +44,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#080b16] text-[#e8d7b5]">
 
-      {/* Navbar */}
-      <nav className="border-b border-[#d4af37]/20 px-6 py-4 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-[#d4af37]">
-            HACKFEST 1.0
-          </h1>
-          <p className="text-xs text-gray-500">
-            Registration Portal
-          </p>
-        </div>
-
-        <button
-          onClick={handleLogout}
-          className="border border-[#d4af37]/40 px-4 py-2 rounded-lg text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition"
-        >
-          Logout
-        </button>
-      </nav>
+      <DashboardNavbar user={user} />
 
       {/* Main */}
       <main className="max-w-6xl mx-auto px-6 py-12">
@@ -222,15 +206,18 @@ const Dashboard = () => {
             </p>
           </button>
 
-          <div className="bg-[#101522] border border-[#d4af37]/20 rounded-xl p-5">
+          <button
+            onClick={() => navigate("/team/my-team")}
+            className="bg-[#101522] border border-[#d4af37]/20 rounded-xl p-5 text-left hover:border-[#d4af37]/60 transition"
+          >
             <h3 className="text-[#d4af37] font-semibold">
-              HackFest
+              {user.teamId ? "My Team" : "Create / Join Team"}
             </h3>
 
             <p className="text-gray-500 text-sm mt-2">
-              Your registration portal is ready.
+              {user.teamId ? "Manage your team and view QR Pass." : "Form your guild and enter the HackFest."}
             </p>
-          </div>
+          </button>
 
         </div>
 
