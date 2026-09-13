@@ -1,4 +1,6 @@
 import Hero from './components/Hero'
+import Dashboard from './pages/Dashboard'
+import BrowseTeammates from './components/BrowseTeammates'
 import AboutEvent from './components/AboutEvent'
 import AboutClub from './components/AboutClub'
 import ApplyNow from './components/ApplyNow'
@@ -12,8 +14,25 @@ import DailyProphet from './components/DailyProphet'
 import FAQ from './components/FAQ'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+
+import SuperAdmin from './pages/SuperAdmin'
+
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+
 import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom'
+
+import {
+  motion,
+  useScroll,
+  useTransform,
+} from 'framer-motion'
+
 
 // Wrapper for the smooth layered card parallax scroll effect
 function PageSection({ children, index }) {
@@ -24,9 +43,23 @@ function PageSection({ children, index }) {
     offset: ['start start', 'end start'],
   })
 
-  const y = useTransform(scrollYProgress, [0, 1], [0, 120])
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.95])
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.6])
+  const y = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [0, 120]
+  )
+
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [1, 0.95]
+  )
+
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [1, 0.6]
+  )
 
   return (
     <motion.div
@@ -44,26 +77,104 @@ function PageSection({ children, index }) {
   )
 }
 
-function App() {
+
+// Homepage
+function Home() {
   return (
     <div className="relative min-h-screen bg-[#080b16] text-[#e8d7b5]">
+
       <Navbar />
+
       <main className="relative bg-[#080b16] overflow-hidden">
-        <PageSection index={1}><Hero /></PageSection>
-        <PageSection index={2}><AboutClub /></PageSection>
-        <PageSection index={3}><ApplyNow /></PageSection>
-        <PageSection index={4}><SortingCeremony /></PageSection>
-        <PageSection index={5}><AboutEvent /></PageSection>
-        <PageSection index={6}><Top15Section /></PageSection>
-        <PageSection index={7}><ChampionshipSection /></PageSection>
-        <PageSection index={8}><HouseLeaderboard /></PageSection>
-        <PageSection index={9}><PastEvents /></PageSection>
-        <PageSection index={10}><OrderOfBuilders /></PageSection>
-        <PageSection index={11}><DailyProphet /></PageSection>
-        <PageSection index={12}><FAQ /></PageSection>
-        <PageSection index={13}><Footer /></PageSection>
+
+        <PageSection index={1}>
+          <Hero />
+        </PageSection>
+
+        <PageSection index={2}>
+          <AboutClub />
+        </PageSection>
+
+        <PageSection index={3}>
+          <ApplyNow />
+        </PageSection>
+
+        <PageSection index={4}>
+          <SortingCeremony />
+        </PageSection>
+
+        <PageSection index={5}>
+          <AboutEvent />
+        </PageSection>
+
+        <PageSection index={6}>
+          <Top15Section />
+        </PageSection>
+
+        <PageSection index={7}>
+          <ChampionshipSection />
+        </PageSection>
+
+        <PageSection index={8}>
+          <HouseLeaderboard />
+        </PageSection>
+
+        <PageSection index={9}>
+          <PastEvents />
+        </PageSection>
+
+        <PageSection index={10}>
+          <OrderOfBuilders />
+        </PageSection>
+
+        <PageSection index={11}>
+          <DailyProphet />
+        </PageSection>
+
+        <PageSection index={12}>
+          <FAQ />
+        </PageSection>
+
+        <PageSection index={13}>
+          <Footer />
+        </PageSection>
+
       </main>
     </div>
+  )
+}
+
+
+// Main App
+function App() {
+  return (
+    <BrowserRouter>
+
+      <Routes>
+
+        {/* Homepage */}
+        <Route
+          path="/"
+          element={<Home />}
+        />
+
+        {/* Authentication */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/super_admin" element={<SuperAdmin />} />
+        <Route path="/browse-teammates" element={<div className="min-h-screen bg-[#080b16] text-[#e8d7b5] p-6 max-w-6xl mx-auto"><BrowseTeammates /></div>} />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/signup"
+          element={<Signup />}
+        />
+
+      </Routes>
+
+    </BrowserRouter>
   )
 }
 

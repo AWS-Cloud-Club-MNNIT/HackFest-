@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import Reveal from './common/Reveal'
 import { staggerContainer, staggerItem } from './common/motion'
-
-const APPLY_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfC4wL7lV-O1e1214e582i70iB0sB8b2L3w1X8l9vO4N2Y6Q/viewform?usp=sf_link'
 
 const DETAILS = [
   { label: 'Date', value: 'October 1, 2026' },
@@ -69,21 +68,20 @@ export default function ApplyNow() {
               challenges ahead.
             </Reveal>
 
-            {/* Register Button */}
+            {/* Apply Now Button */}
             <Reveal delay={0.16} className="mt-8">
-              <motion.a
-                href={APPLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center gap-3 rounded-md border-2 border-[#b89228] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-9 py-4 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition hover:border-[#f4e8c1] hover:shadow-[0_10px_40px_rgba(212,175,55,0.6)]"
-              >
-                <span>REGISTER FOR HACKFEST</span>
-                <span className="text-lg">✉️</span>
-              </motion.a>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="inline-block">
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center gap-3 rounded-md border-2 border-[#b89228] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-9 py-4 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition hover:border-[#f4e8c1] hover:shadow-[0_10px_40px_rgba(212,175,55,0.6)]"
+                >
+                  <span>Apply Now</span>
+                  <span className="text-lg">✉️</span>
+                </Link>
+              </motion.div>
             </Reveal>
           </div>
+
 
           {/* Event Details */}
           <motion.div
