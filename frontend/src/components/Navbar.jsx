@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { APPLY_URL } from '../config'
+import { Link } from "react-router-dom";
 
 // Custom Crisp Vector SVG Icons
 const Icons = {
@@ -184,20 +185,26 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Desktop CTA Button */}
+        {/* Desktop CTA Buttons */}
         <div className="hidden items-center gap-3 lg:flex">
-          <a
-            href="#sorting"
-            onClick={(e) => handleNavClick(e, '#sorting')}
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_0_20px_rgba(212,175,55,0.35)] transition duration-300 hover:border-[#f4e8c1] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:scale-[1.03]"
+          <Link
+            to="/login"
+            className="rounded-md border border-[#d4af37]/60 bg-[#10182b]/80 px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#e8d7b5] transition hover:border-[#d4af37] hover:text-[#f4e8c1] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+          >
+            Login
+          </Link>
+
+          <Link
+            to="/signup"
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-5 py-2 text-xs font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_0_20px_rgba(212,175,55,0.35)] transition duration-300 hover:border-[#f4e8c1] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:scale-[1.03]"
           >
             <span className="relative z-10 flex items-center gap-2">
-              <span>Enter Magic</span>
+              <span>Register</span>
               <svg className="h-3.5 w-3.5 text-[#d4af37] transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
               </svg>
             </span>
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -248,17 +255,24 @@ export default function Navbar() {
                   </a>
                 )
               })}
-              <div className="pt-3 border-t border-[#d4af37]/20">
-                <a
-                  href="#sorting"
-                  onClick={(e) => handleNavClick(e, '#sorting')}
+              <div className="pt-3 flex flex-col gap-2.5 border-t border-[#d4af37]/20">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex w-full items-center justify-center rounded-md border border-[#d4af37]/60 bg-[#080b16] py-2.5 text-center text-xs font-bold uppercase tracking-wider text-[#e8d7b5]"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="flex w-full items-center justify-center gap-2 rounded-md border border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] py-3 text-center text-xs font-bold uppercase tracking-wider text-[#f4e8c1] shadow-[0_0_20px_rgba(212,175,55,0.4)]"
                 >
-                  <span>Enter The Magic</span>
+                  <span>Register</span>
                   <svg className="h-4 w-4 text-[#d4af37]" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
                   </svg>
-                </a>
+                </Link>
               </div>
             </div>
           </motion.div>
