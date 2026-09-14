@@ -1,5 +1,20 @@
+import { useRef } from 'react'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom'
+
+import {
+  motion,
+  useScroll,
+  useTransform,
+} from 'framer-motion'
+
+import { Toaster } from 'react-hot-toast'
+
+// Components
 import Hero from './components/Hero'
-import Dashboard from './pages/Dashboard'
 import BrowseTeammates from './components/BrowseTeammates'
 import AboutEvent from './components/AboutEvent'
 import AboutClub from './components/AboutClub'
@@ -14,27 +29,22 @@ import DailyProphet from './components/DailyProphet'
 import FAQ from './components/FAQ'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ProtectedRoute from './components/ProtectedRoute'
 
-import SuperAdmin from './pages/SuperAdmin'
-
+// Pages
+import Dashboard from './pages/Dashboard'
+import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import CreateTeam from './pages/CreateTeam'
+import MyTeam from './pages/MyTeam'
+import QRPass from './pages/QRPass'
+import OrganizerScan from './pages/OrganizerScan'
 
-import { useRef } from 'react'
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-} from 'react-router-dom'
+// =====================================================
+// Wrapper for the smooth layered card parallax effect
+// =====================================================
 
-import {
-  motion,
-  useScroll,
-  useTransform,
-} from 'framer-motion'
-
-
-// Wrapper for the smooth layered card parallax scroll effect
 function PageSection({ children, index }) {
   const ref = useRef(null)
 
@@ -68,7 +78,11 @@ function PageSection({ children, index }) {
       style={{ zIndex: index }}
     >
       <motion.div
-        style={{ y, scale, opacity }}
+        style={{
+          y,
+          scale,
+          opacity,
+        }}
         className="w-full origin-top bg-[#080b16] shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
       >
         {children}
@@ -77,8 +91,10 @@ function PageSection({ children, index }) {
   )
 }
 
-
+// =====================================================
 // Homepage
+// =====================================================
+
 function Home() {
   return (
     <div className="relative min-h-screen bg-[#080b16] text-[#e8d7b5]">
@@ -144,19 +160,16 @@ function Home() {
   )
 }
 
-
-import CreateTeam from './pages/CreateTeam'
-import MyTeam from './pages/MyTeam'
-import QRPass from './pages/QRPass'
-import OrganizerScan from './pages/OrganizerScan'
-import { Toaster } from 'react-hot-toast'
-
+// =====================================================
 // Main App
+// =====================================================
+
 function App() {
   return (
     <BrowserRouter>
-      <Toaster 
-        position="top-right" 
+
+      <Toaster
+        position="top-right"
         toastOptions={{
           style: {
             background: '#10182b',
@@ -165,24 +178,84 @@ function App() {
           },
         }}
       />
+
       <Routes>
 
-        {/* Homepage */}
+        {/* ============================================
+            MAIN HACKFEST WEBSITE
+        ============================================ */}
+
         <Route
           path="/"
           element={<Home />}
         />
 
-        {/* Authentication & Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/super_admin" element={<SuperAdmin />} />
-        <Route path="/browse-teammates" element={<div className="min-h-screen bg-[#080b16] text-[#e8d7b5] p-6 max-w-6xl mx-auto"><BrowseTeammates /></div>} />
-        
-        {/* Team & Check-in Routes */}
-        <Route path="/team/create" element={<CreateTeam />} />
-        <Route path="/team/my-team" element={<MyTeam />} />
-        <Route path="/team/qr-pass" element={<QRPass />} />
-        <Route path="/organizer/scan" element={<OrganizerScan />} />
+        {/* ============================================
+            USER DASHBOARD (any logged-in contestant)
+        ============================================ */}
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ============================================
+            SUPER ADMIN (super_admin role only)
+        ============================================ */}
+
+        <Route
+          path="/super-admin"
+          element={
+            <ProtectedRoute requiredRole="super_admin">
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ============================================
+            TEAMMATES
+        ============================================ */}
+
+        <Route
+          path="/browse-teammates"
+          element={
+            <div className="min-h-screen bg-[#080b16] text-[#e8d7b5] p-6 max-w-6xl mx-auto">
+              <BrowseTeammates />
+            </div>
+          }
+        />
+
+        {/* ============================================
+            TEAM & CHECK-IN
+        ============================================ */}
+
+        <Route
+          path="/team/create"
+          element={<CreateTeam />}
+        />
+
+        <Route
+          path="/team/my-team"
+          element={<MyTeam />}
+        />
+
+        <Route
+          path="/team/qr-pass"
+          element={<QRPass />}
+        />
+
+        <Route
+          path="/organizer/scan"
+          element={<OrganizerScan />}
+        />
+
+        {/* ============================================
+            AUTHENTICATION
+        ============================================ */}
 
         <Route
           path="/login"

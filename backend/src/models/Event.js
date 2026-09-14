@@ -43,6 +43,11 @@ const eventSchema = new mongoose.Schema(
     endDate: {
       type: Date,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+      // Lets Super Admin hide/retire an event without deleting it.
+    },
   },
   {
     timestamps: true, // Automatically handles createdAt and updatedAt

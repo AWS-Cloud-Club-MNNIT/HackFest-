@@ -36,7 +36,7 @@ const Login = () => {
       );
 
       if (userData?.role === "super_admin") {
-        navigate("/super_admin");
+        navigate("/super-admin");
       } else {
         navigate("/dashboard");
       }
