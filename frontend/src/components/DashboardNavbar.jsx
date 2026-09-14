@@ -115,6 +115,26 @@ const DashboardNavbar = ({ user }) => {
         </p>
       </Link>
 
+      <div className="hidden md:flex items-center gap-8">
+        <Link to="/dashboard" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+          Dashboard
+        </Link>
+        {user?.teamId ? (
+          <Link to="/team/my-team" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+            My Team
+          </Link>
+        ) : (
+          <>
+            <Link to="/team/create" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Create Team
+            </Link>
+            <Link to="/team/find" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Find Team
+            </Link>
+          </>
+        )}
+      </div>
+
       <div className="flex items-center gap-4 relative">
         {/* Notifications Dropdown */}
         <div ref={dropdownRef} className="relative">
