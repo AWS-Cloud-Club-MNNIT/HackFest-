@@ -27,6 +27,10 @@ const teamSchema = new mongoose.Schema(
       type: String,
       // Will be validated against Event.domains when joining/creating
     },
+    lookingForTeammates: {
+      type: Boolean,
+      default: true,
+    },
     status: {
       type: String,
       enum: ['forming', 'complete', 'locked'],

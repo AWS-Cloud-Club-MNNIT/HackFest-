@@ -38,18 +38,28 @@ const BrowseTeammates = () => {
     }
   };
 
-  const fetchCurrentUser = async () => {
+  const [isLeader, setIsLeader] = useState(false);
+
+  const fetchCurrentUserAndTeam = async () => {
     try {
       const authRes = await API.get("/auth/me");
-      setCurrentUser(authRes.data.user);
+      const user = authRes.data.user;
+      setCurrentUser(user);
+
+      if (user.teamId) {
+        const teamRes = await API.get(`/teams/${user.teamId}`);
+        if (teamRes.data.leaderId._id === user._id) {
+          setIsLeader(true);
+        }
+      }
     } catch (error) {
-      // Not logged in, that's fine
+      // Not logged in or no team, that's fine
     }
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchCurrentUser();
+    fetchCurrentUserAndTeam();
   }, []);
 
   const handleSearch = (e) => {
@@ -196,17 +206,20 @@ const BrowseTeammates = () => {
                   navigator.clipboard.writeText(u._id);
                   toast.success("User ID copied to clipboard!");
                 }}
-                className="w-1/3 py-2.5 rounded-lg border border-gray-600 text-gray-400 hover:text-white transition text-xs font-bold"
+                className={`py-2.5 rounded-lg border border-gray-600 text-gray-400 hover:text-white transition text-xs font-bold ${isLeader ? 'w-1/3' : 'w-full'}`}
               >
                 Copy ID
               </button>
-              <button
-                onClick={() => handleInvite(u._id)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
-              >
-                <MailPlus className="w-4 h-4" />
-                Invite
-              </button>
+              
+              {isLeader && (
+                <button
+                  onClick={() => handleInvite(u._id)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                >
+                  <MailPlus className="w-4 h-4" />
+                  Invite
+                </button>
+              )}
             </div>
 
           </div>

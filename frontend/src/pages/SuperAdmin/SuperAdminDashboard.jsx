@@ -16,7 +16,7 @@ const menuItems = [
   },
   {
     id: "events",
-    label: "Events",
+    label: "Domains & Config",
     icon: "▤",
   },
   {
@@ -36,16 +36,7 @@ const menuItems = [
   },
 ];
 
-const emptyEvent = {
-  name: "",
-  description: "",
-  date: "",
-  venue: "",
-  registrationDeadline: "",
-  maxParticipants: "",
-  status: "draft",
-  isActive: true,
-};
+// removed emptyEvent
 
 function StatCard({ icon, label, value, description }) {
   return (
@@ -129,10 +120,7 @@ function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-
-  const [eventForm, setEventForm] = useState(emptyEvent);
+  // Modals removed, handled by EventsTab
 
   // =========================================================
   // FETCH DASHBOARD
@@ -209,104 +197,7 @@ function SuperAdminDashboard() {
     }, 3000);
   };
 
-  // =========================================================
-  // FORM INPUT
-  // =========================================================
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setEventForm((previous) => ({
-      ...previous,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  // =========================================================
-  // OPEN CREATE MODAL
-  // =========================================================
-
-  const openCreateEvent = () => {
-    setEditingEvent(null);
-    setEventForm(emptyEvent);
-    setShowEventModal(true);
-  };
-
-  // =========================================================
-  // OPEN EDIT MODAL
-  // =========================================================
-
-  const openEditEvent = (event) => {
-    setEditingEvent(event);
-
-    setEventForm({
-      name: event.name || "",
-      description: event.description || "",
-      date: event.date
-        ? new Date(event.date).toISOString().slice(0, 16)
-        : "",
-      venue: event.venue || "",
-      registrationDeadline: event.registrationDeadline
-        ? new Date(event.registrationDeadline)
-            .toISOString()
-            .slice(0, 16)
-        : "",
-      maxParticipants: event.maxParticipants || "",
-      status: event.status || "draft",
-      isActive: event.isActive ?? true,
-    });
-
-    setShowEventModal(true);
-  };
-
-  // =========================================================
-  // CREATE / UPDATE EVENT
-  // =========================================================
-
-  const handleEventSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      setError("");
-
-      const payload = {
-        name: eventForm.name,
-        description: eventForm.description,
-        date: eventForm.date,
-        venue: eventForm.venue,
-        registrationDeadline:
-          eventForm.registrationDeadline || undefined,
-        maxParticipants: eventForm.maxParticipants
-          ? Number(eventForm.maxParticipants)
-          : undefined,
-        status: eventForm.status,
-        isActive: eventForm.isActive,
-      };
-
-      const url = editingEvent
-        ? `/super-admin/events/${editingEvent._id}`
-        : `/super-admin/events`;
-
-      const method = editingEvent ? "put" : "post";
-
-      const response = await API[method](url, payload);
-      const data = response.data;
-
-      setShowEventModal(false);
-
-      await fetchEvents();
-      await fetchDashboard();
-
-      showSuccess(
-        editingEvent
-          ? "Event updated successfully"
-          : "Event created successfully"
-      );
-    } catch (error) {
-      console.error(error);
-      setError(error.message);
-    }
-  };
+  // Event submission moved to EventsTab
 
   // =========================================================
   // DELETE EVENT
@@ -737,23 +628,7 @@ function SuperAdminDashboard() {
               </p>
             </div>
 
-            <button
-              onClick={openCreateEvent}
-              className="
-                rounded-xl
-                border border-[#d1ad4f]/40
-                bg-[#c9a646]/10
-                px-5 py-3
-                text-sm font-semibold
-                text-[#e6d29b]
-                shadow-[0_0_30px_rgba(201,166,70,0.06)]
-                transition
-                hover:bg-[#c9a646]/20
-                hover:shadow-[0_0_35px_rgba(201,166,70,0.12)]
-              "
-            >
-              + Create Event
-            </button>
+            {/* Create Event button removed */}
           </div>
 
           {/* CONTENT */}
@@ -772,21 +647,7 @@ function SuperAdminDashboard() {
         </div>
       </main>
 
-      {/* =====================================================
-          EVENT MODAL
-      ===================================================== */}
-
-      <AnimatePresence>
-        {showEventModal && (
-          <EventModal
-            form={eventForm}
-            editing={editingEvent}
-            onChange={handleInputChange}
-            onClose={() => setShowEventModal(false)}
-            onSubmit={handleEventSubmit}
-          />
-        )}
-      </AnimatePresence>
+      {/* Event modal removed */}
     </div>
   );
 }

@@ -37,6 +37,7 @@ import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import CreateTeam from './pages/CreateTeam'
+import FindTeam from './pages/FindTeam'
 import MyTeam from './pages/MyTeam'
 import QRPass from './pages/QRPass'
 import OrganizerScan from './pages/OrganizerScan'
@@ -235,12 +236,29 @@ function App() {
 
         <Route
           path="/team/create"
-          element={<CreateTeam />}
+          element={
+            <ProtectedRoute>
+              <CreateTeam />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/team/find"
+          element={
+            <ProtectedRoute>
+              <FindTeam />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/team/my-team"
-          element={<MyTeam />}
+          element={
+            <ProtectedRoute>
+              <MyTeam />
+            </ProtectedRoute>
+          }
         />
 
         <Route

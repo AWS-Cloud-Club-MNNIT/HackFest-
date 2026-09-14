@@ -1,6 +1,7 @@
 import JoinRequest from '../models/JoinRequest.js';
 import Team from '../models/Team.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import crypto from 'crypto';
 
 // POST /api/join-requests
@@ -31,6 +32,16 @@ export const createJoinRequest = async (req, res) => {
 
     const joinRequest = new JoinRequest({ teamId, fromUserId });
     await joinRequest.save();
+
+    // Notify leader
+    const notification = await Notification.create({
+      userId: team.leaderId,
+      type: 'request_received',
+      message: `${req.user.name || 'Someone'} requested to join your team: ${team.name}`,
+      relatedId: joinRequest._id
+    });
+
+    req.app.get('io').to(`user:${team.leaderId}`).emit('notification:new', notification);
 
     res.status(201).json(joinRequest);
   } catch (error) {
@@ -116,6 +127,16 @@ export const acceptJoinRequest = async (req, res) => {
       { fromUserId: joinRequest.fromUserId, status: 'pending' },
       { status: 'rejected' }
     );
+
+    // Notify user
+    const notification = await Notification.create({
+      userId: joinRequest.fromUserId,
+      type: 'request_accepted',
+      message: `Your request to join ${team.name} was accepted!`,
+      relatedId: team._id
+    });
+
+    req.app.get('io').to(`user:${joinRequest.fromUserId}`).emit('notification:new', notification);
 
     res.status(200).json({ message: 'Request accepted', team });
   } catch (error) {

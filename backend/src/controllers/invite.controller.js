@@ -40,12 +40,14 @@ export const sendInvite = async (req, res) => {
     await invite.save();
 
     // Create a Notification for the invited user
-    await Notification.create({
+    const notification = await Notification.create({
       userId: toUserId,
       type: 'invite_received',
       message: `You have been invited to join team: ${team.name}`,
       relatedId: invite._id
     });
+
+    req.app.get('io').to(`user:${toUserId}`).emit('notification:new', notification);
 
     res.status(201).json(invite);
   } catch (error) {
@@ -121,12 +123,14 @@ export const acceptInvite = async (req, res) => {
     );
 
     // Notify the leader that their invite was accepted
-    await Notification.create({
+    const notification = await Notification.create({
       userId: team.leaderId,
       type: 'invite_accepted',
       message: `${req.user.name} accepted your invite to join ${team.name}`,
       relatedId: team._id
     });
+
+    req.app.get('io').to(`user:${team.leaderId}`).emit('notification:new', notification);
 
     res.status(200).json({ message: 'Invite accepted', team });
   } catch (error) {

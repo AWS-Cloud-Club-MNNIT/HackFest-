@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Check, Trash2, ShieldAlert } from "lucide-react";
 import API from "../services/api";
+import { io } from "socket.io-client";
 
 const DashboardNavbar = ({ user }) => {
   const navigate = useNavigate();
@@ -36,12 +37,28 @@ const DashboardNavbar = ({ user }) => {
   };
 
   useEffect(() => {
+    let socket = null;
+
     if (user) {
       fetchNotifications();
-      // Polling could be added here if no socket
-      const interval = setInterval(fetchNotifications, 30000); // 30s poll
-      return () => clearInterval(interval);
+      
+      // Initialize Socket
+      socket = io(API.defaults.baseURL.replace('/api', ''));
+
+      socket.emit("register", user._id);
+
+      socket.on("notification:new", (newNotif) => {
+        setNotifications((prev) => [newNotif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        // Optional: show a toast alert for the notification
+        // toast.success(newNotif.message);
+      });
     }
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
   }, [user]);
 
   const handleMarkAsRead = async (id) => {
