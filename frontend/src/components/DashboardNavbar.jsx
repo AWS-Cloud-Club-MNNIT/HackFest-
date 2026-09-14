@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Check, Trash2, ShieldAlert } from "lucide-react";
 import API from "../services/api";
+import { io } from "socket.io-client";
 
 const DashboardNavbar = ({ user }) => {
   const navigate = useNavigate();
@@ -36,12 +37,28 @@ const DashboardNavbar = ({ user }) => {
   };
 
   useEffect(() => {
+    let socket = null;
+
     if (user) {
       fetchNotifications();
-      // Polling could be added here if no socket
-      const interval = setInterval(fetchNotifications, 30000); // 30s poll
-      return () => clearInterval(interval);
+      
+      // Initialize Socket
+      socket = io(API.defaults.baseURL.replace('/api', ''));
+
+      socket.emit("register", user._id);
+
+      socket.on("notification:new", (newNotif) => {
+        setNotifications((prev) => [newNotif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        // Optional: show a toast alert for the notification
+        // toast.success(newNotif.message);
+      });
     }
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
   }, [user]);
 
   const handleMarkAsRead = async (id) => {
@@ -97,6 +114,26 @@ const DashboardNavbar = ({ user }) => {
           Registration Portal
         </p>
       </Link>
+
+      <div className="hidden md:flex items-center gap-8">
+        <Link to="/dashboard" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+          Dashboard
+        </Link>
+        {user?.teamId ? (
+          <Link to="/team/my-team" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+            My Team
+          </Link>
+        ) : (
+          <>
+            <Link to="/team/create" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Create Team
+            </Link>
+            <Link to="/team/find" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Find Team
+            </Link>
+          </>
+        )}
+      </div>
 
       <div className="flex items-center gap-4 relative">
         {/* Notifications Dropdown */}

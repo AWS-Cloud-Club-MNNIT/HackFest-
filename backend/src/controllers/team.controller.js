@@ -1,6 +1,7 @@
 import Team from '../models/Team.js';
 import Event from '../models/Event.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 
@@ -51,7 +52,7 @@ export const createTeam = async (req, res) => {
 // GET /api/teams/:id
 export const getTeam = async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id).populate('members', '-passwordHash');
+    const team = await Team.findById(req.params.id).populate('members', '-passwordHash').populate('leaderId', '-passwordHash').populate('eventId', 'name teamSizeMax registrationDeadline');
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.status(200).json(team);
   } catch (error) {
@@ -79,6 +80,22 @@ export const updateDomain = async (req, res) => {
     team.domain = domain;
     await team.save();
     
+    // Notify all members
+    const notifications = await Promise.all(
+      team.members.map(memberId => 
+        Notification.create({
+          userId: memberId,
+          type: 'domain_changed',
+          message: `Your team domain was changed to ${domain}`,
+          relatedId: team._id
+        })
+      )
+    );
+
+    notifications.forEach(notif => {
+      req.app.get('io').to(`user:${notif.userId}`).emit('notification:new', notif);
+    });
+
     res.status(200).json(team);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -111,6 +128,15 @@ export const removeMember = async (req, res) => {
     await team.save();
     await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     
+    // Notify the removed member
+    const notification = await Notification.create({
+      userId,
+      type: 'member_left',
+      message: `You were removed from the team ${team.name}`,
+      relatedId: team._id
+    });
+    req.app.get('io').to(`user:${userId}`).emit('notification:new', notification);
+
     res.status(200).json(team);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -141,6 +167,15 @@ export const leaveTeam = async (req, res) => {
     await team.save();
     await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     
+    // Notify the leader
+    const notification = await Notification.create({
+      userId: team.leaderId,
+      type: 'member_left',
+      message: `${req.user.name} has left your team ${team.name}`,
+      relatedId: team._id
+    });
+    req.app.get('io').to(`user:${team.leaderId}`).emit('notification:new', notification);
+
     res.status(200).json({ message: 'Successfully left the team', team });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -185,6 +220,42 @@ export const scanQR = async (req, res) => {
     if (!team) return res.status(404).json({ message: 'Invalid QR Token' });
     
     res.status(200).json(team);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PATCH /api/teams/:id/looking-for-teammates
+export const toggleLookingForTeammates = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { lookingForTeammates } = req.body;
+    
+    const team = await Team.findById(id).populate('eventId');
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.leaderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only team leader can change this setting' });
+    }
+    
+    team.lookingForTeammates = lookingForTeammates;
+    await team.save();
+    
+    res.status(200).json({ message: 'Looking for teammates status updated', team });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /api/teams/available
+export const getAvailableTeams = async (req, res) => {
+  try {
+    const teams = await Team.find({
+      lookingForTeammates: true,
+      $expr: { $lt: [{ $size: "$members" }, 4] },
+      status: 'forming'
+    }).populate('leaderId', '-passwordHash').populate('members', '-passwordHash').populate('eventId', 'name teamSizeMax');
+    
+    res.status(200).json(teams);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
