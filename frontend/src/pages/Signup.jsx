@@ -94,13 +94,13 @@ const Signup = () => {
         
         <div className="relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="px-3 py-1 text-xs tracking-[0.25em] font-semibold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/20 shadow-[0_0_15px_rgba(212,175,55,0.15)] mb-6 inline-block">
-              HackFest Registration
+            <span className="font-display px-3.5 py-1 text-xs tracking-[0.25em] font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 shadow-[0_0_15px_rgba(212,175,55,0.15)] mb-6 inline-block">
+              HACKFEST REGISTRATION
             </span>
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-[#d4af37] to-[#e6c65c] mb-6 tracking-tight">
+            <h1 className="font-harry text-5xl lg:text-6xl font-bold text-[#f4e8c1] mb-4 tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
               Begin Your Journey
             </h1>
-            <p className="text-gray-400 text-lg leading-relaxed">
+            <p className="font-serif text-lg leading-relaxed text-[#e8d7b5]/85">
               Create an account to join the event, form your team, and participate in the ultimate challenge.
             </p>
           </motion.div>

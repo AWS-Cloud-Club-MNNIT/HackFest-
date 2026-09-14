@@ -85,55 +85,36 @@ function TiltCard() {
         rotateX,
         transformStyle: 'preserve-3d',
       }}
-      className="relative aspect-[4/5] w-full max-w-md overflow-hidden rounded-2xl border-2 border-[#d4af37] bg-gradient-to-b from-[#24170f] via-[#10182b] to-[#080b16] shadow-[0_0_35px_rgba(212,175,55,0.35)] sm:aspect-[5/4] lg:aspect-[4/5]"
+      className="group relative aspect-[3/4] w-full max-w-lg min-h-[500px] sm:min-h-[560px] overflow-hidden rounded-2xl border-2 border-[#d4af37] bg-[#080b16] shadow-[0_0_45px_rgba(212,175,55,0.4)] transition-all duration-300"
     >
-      {/* Magical Grid */}
-      <div
-        style={{ transform: 'translateZ(30px)' }}
-        className="pointer-events-none absolute inset-0 bg-hogwarts-grid opacity-30"
-      />
+      {/* Official Poster Image Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img
+          src="/images/aws_triwizard_card_bg.jpg"
+          alt="HackFest 1.0 Official Poster"
+          className="h-full w-full object-cover object-top opacity-100 group-hover:scale-105 transition-all duration-700"
+        />
+        {/* Subtle Dark Scrim at bottom only */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080b16]/90 via-transparent to-transparent pointer-events-none" />
+      </div>
 
-      {/* Purple Glow */}
+      {/* Card Content Overlay at Bottom */}
       <div
-        style={{ transform: 'translateZ(50px)' }}
-        className="pointer-events-none absolute -bottom-16 -right-16 h-64 w-64 rounded-full bg-[#5c3b80]/50 blur-[80px]"
-      />
-
-      {/* Card Content */}
-      <div
-        style={{ transform: 'translateZ(60px)' }}
-        className="relative flex h-full flex-col justify-between p-8 text-center sm:text-left"
+        style={{ transform: 'translateZ(45px)' }}
+        className="relative z-10 flex h-full flex-col justify-end p-5 sm:p-6"
       >
-        {/* Card Header */}
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-[#d4af37]/60 bg-[#10182b]/80 px-4 py-1 text-xs font-bold uppercase tracking-widest text-[#d4af37] backdrop-blur">
-            THE TRIWIZARD CHALLENGE
+          <div>
+            <p className="font-display text-[10px] font-bold uppercase tracking-widest text-[#d4af37] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+              THE TRIWIZARD CHALLENGE
+            </p>
+            <p className="font-harry text-3xl sm:text-4xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+              72-HOUR SPRINT
+            </p>
+          </div>
+          <span className="rounded-full bg-[#10182b]/90 border border-[#d4af37]/60 px-3 py-1 text-xs font-bold text-[#d4af37] shadow-lg backdrop-blur-sm">
+            16–18 OCT
           </span>
-
-          <span className="text-xl animate-candle">
-            ⚡
-          </span>
-        </div>
-
-        {/* Card Main Content */}
-        <div>
-          <p className="font-harry text-6xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-            72 HOURS
-          </p>
-
-          <p className="mt-2 font-display text-sm font-semibold text-[#d4af37]">
-            The Main Online Hackathon
-          </p>
-
-          <div className="mt-5 h-0.5 w-full bg-gradient-to-r from-[#d4af37] via-[#5c3b80] to-transparent" />
-
-          <p className="mt-5 font-harry text-4xl font-bold text-[#f4e8c1]">
-            16–18 OCTOBER
-          </p>
-
-          <p className="mt-2 text-xs font-medium text-[#e8d7b5]/80 font-sans">
-            Top 50 teams compete in the 72-hour online sprint.
-          </p>
         </div>
       </div>
     </motion.div>

@@ -49,12 +49,16 @@ const Icons = {
 }
 
 const NAV_LINKS = [
-  { name: 'Home', href: '#hero', icon: Icons.Home },
-  { name: 'Archives', href: '#archives', icon: Icons.Archives },
-  { name: 'Sorting', href: '#sorting', icon: Icons.Sorting },
-  { name: 'Trials & Finale', href: '#trials', icon: Icons.Trials },
-  { name: 'House Cup', href: '#house-points', icon: Icons.HouseCup },
-  { name: 'Prophet', href: '#daily-prophet', icon: Icons.Prophet },
+  { name: 'Home', href: '#hero' },
+  { name: 'About', href: '#archives' },
+  { name: 'Houses', href: '#sorting' },
+  { name: 'Journey', href: '#journey' },
+  { name: 'Trials', href: '#trials' },
+  { name: 'Finale', href: '#championship' },
+  { name: 'Rewards', href: '#rewards' },
+  { name: 'Express', href: '#express' },
+  { name: 'Prophet', href: '#daily-prophet' },
+  { name: 'FAQ', href: '#faq' },
 ]
 
 export default function Navbar() {
@@ -112,7 +116,7 @@ export default function Navbar() {
     }
     const element = document.getElementById(targetId)
     if (element) {
-      const topPos = element.getBoundingClientRect().top + window.scrollY - 75
+      const topPos = element.getBoundingClientRect().top + window.scrollY - 55
       window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
     }
   }
@@ -121,42 +125,49 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-[#080b16]/95 backdrop-blur-lg py-3 shadow-[0_10px_35px_rgba(0,0,0,0.9)] border-b border-[#d4af37]/40'
-          : 'bg-gradient-to-b from-[#080b16]/95 via-[#080b16]/60 to-transparent py-4'
+          ? 'bg-[#080b16]/95 backdrop-blur-xl py-2 shadow-[0_10px_35px_rgba(0,0,0,0.9)] border-b border-[#d4af37]/30'
+          : 'bg-gradient-to-b from-[#080b16]/95 via-[#080b16]/60 to-transparent py-3'
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-10">
-        {/* Brand Logo & Hogwarts Crest */}
+        {/* Brand Logo - AWS MNNIT */}
         <a
           href="#hero"
           onClick={(e) => handleNavClick(e, '#hero')}
-          className="group flex items-center gap-3.5 transition"
+          className="group flex cursor-pointer items-center gap-2.5 transition"
         >
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4af37]/70 bg-gradient-to-br from-[#24170f] via-[#10182b] to-[#080b16] p-0.5 shadow-[0_0_15px_rgba(212,175,55,0.3)] transition duration-300 group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]">
-            <div className="flex h-full w-full items-center justify-center rounded-[9px] bg-[#080b16] text-[#d4af37]">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-[#d4af37]">
-                <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
-              </svg>
-            </div>
+          <img
+            src="/images/aws_mnnit_logo.png"
+            alt="AWS MNNIT Logo"
+            className="h-9 sm:h-11 w-auto object-contain transition duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(212,175,55,0.3)] cursor-pointer"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              if (e.currentTarget.nextElementSibling) {
+                e.currentTarget.nextElementSibling.classList.remove('hidden')
+                e.currentTarget.nextElementSibling.classList.add('flex')
+              }
+            }}
+          />
+          {/* Fallback badge if image file is not yet placed by user */}
+          <div className="hidden items-center gap-1.5 rounded-xl border border-[#d4af37]/50 bg-[#10182b] px-2.5 py-1 text-[#d4af37] font-bold text-xs tracking-wider cursor-pointer">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-[#d4af37]">
+              <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
+            </svg>
+            <span>AWS MNNIT</span>
           </div>
 
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-harry text-2xl font-bold tracking-wider text-[#d4af37] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                HOGWARTS
-              </span>
-              <span className="rounded-full bg-[#d4af37]/15 px-2.5 py-0.5 text-[11px] font-bold text-[#f4e8c1] border border-[#d4af37]/40 tracking-wider">
-                AWS SBG
-              </span>
-            </div>
-            <span className="text-[11px] font-medium tracking-widest text-[#e8d7b5]/70 uppercase font-sans">
-              MNNIT Allahabad
+          <div className="hidden flex-col sm:flex cursor-pointer">
+            <span className="font-display text-sm font-extrabold tracking-wider text-[#d4af37] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+              AWS MNNIT
+            </span>
+            <span className="text-[10px] font-semibold tracking-widest text-[#e8d7b5]/70 uppercase font-sans">
+              Student Builder Group
             </span>
           </div>
         </a>
 
-        {/* Clean, Uncluttered Desktop Navigation Links */}
-        <nav className="hidden items-center gap-7 xl:gap-8 lg:flex border border-[#d4af37]/35 rounded-full bg-[#10182b]/70 px-6 py-2 backdrop-blur-md shadow-inner">
+        {/* Ultra-Clean Floating Pill Navigation Bar */}
+        <nav className="hidden items-center gap-3.5 xl:gap-5 lg:flex border border-[#d4af37]/25 rounded-full bg-[#080b16]/85 px-5 py-1.5 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
           {NAV_LINKS.map((link) => {
             const sectionId = link.href.replace('#', '')
             const isActive = activeSection === sectionId
@@ -165,18 +176,17 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
+                className={`relative cursor-pointer text-[11px] xl:text-[12px] font-semibold tracking-wide transition-all duration-300 select-none ${
                   isActive
-                    ? 'text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] font-extrabold'
-                    : 'text-[#e8d7b5]/80 hover:text-[#f4e8c1] hover:drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]'
+                    ? 'text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] font-bold'
+                    : 'text-[#e8d7b5]/75 hover:text-[#f4e8c1]'
                 }`}
               >
-                <span className="text-[#d4af37]">{link.icon}</span>
                 <span>{link.name}</span>
                 {isActive && (
                   <motion.div
                     layoutId="activeNavIndicator"
-                    className="absolute -bottom-2.5 left-0 right-0 h-0.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#f4e8c1] to-[#d4af37] shadow-[0_0_10px_#d4af37]"
+                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#d4af37] shadow-[0_0_8px_#d4af37]"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -185,22 +195,22 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Desktop CTA Buttons */}
-        <div className="hidden items-center gap-3 lg:flex">
+        {/* Professional Desktop CTA Buttons */}
+        <div className="hidden items-center gap-4 lg:flex">
           <Link
             to="/login"
-            className="rounded-md border border-[#d4af37]/60 bg-[#10182b]/80 px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#e8d7b5] transition hover:border-[#d4af37] hover:text-[#f4e8c1] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+            className="cursor-pointer text-xs font-semibold tracking-wider text-[#e8d7b5]/85 transition hover:text-[#d4af37]"
           >
             Login
           </Link>
 
           <Link
             to="/signup"
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-5 py-2 text-xs font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_0_20px_rgba(212,175,55,0.35)] transition duration-300 hover:border-[#f4e8c1] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:scale-[1.03]"
+            className="group relative cursor-pointer inline-flex items-center justify-center overflow-hidden rounded-full border border-[#d4af37] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-5 py-1.5 text-xs font-bold tracking-wider text-[#f4e8c1] shadow-[0_0_18px_rgba(212,175,55,0.35)] transition duration-300 hover:border-[#f4e8c1] hover:shadow-[0_0_28px_rgba(212,175,55,0.6)] hover:scale-[1.03]"
           >
-            <span className="relative z-10 flex items-center gap-2">
+            <span className="relative z-10 flex items-center gap-1.5 cursor-pointer">
               <span>Register</span>
-              <svg className="h-3.5 w-3.5 text-[#d4af37] transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-3.5 w-3.5 text-[#d4af37] transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
               </svg>
             </span>
@@ -244,13 +254,12 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className={`flex items-center gap-3 text-sm font-semibold uppercase tracking-wider transition-all ${
+                    className={`flex items-center text-sm font-semibold tracking-wider transition-all ${
                       isActive
                         ? 'text-[#d4af37] font-bold pl-3 border-l-2 border-[#d4af37]'
                         : 'text-[#e8d7b5]/80 hover:text-[#d4af37]'
                     }`}
                   >
-                    <span className="text-[#d4af37]">{link.icon}</span>
                     <span>{link.name}</span>
                   </a>
                 )

@@ -358,26 +358,22 @@ function SuperAdminDashboard() {
       >
         <div className="flex h-full items-center justify-between px-6">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex h-10 w-10 items-center justify-center
-                rounded-xl
-                border border-[#c9a646]/30
-                bg-[#c9a646]/10
-                text-xl
-              "
-            >
-              ⚡
-            </div>
-
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/aws_mnnit_logo.png"
+              alt="AWS MNNIT Logo"
+              className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
             <div>
-              <p className="text-sm font-bold tracking-[0.2em] text-[#e7d49d]">
+              <p className="font-harry text-2xl font-bold tracking-wider text-[#f4e8c1]">
                 AWS SBG
               </p>
 
-              <p className="text-[9px] uppercase tracking-[0.3em] text-[#77839b]">
-                Hogwarts Administration
+              <p className="font-display text-[9px] uppercase tracking-[0.3em] text-[#d4af37] font-sans">
+                Super Admin Ministry
               </p>
             </div>
           </div>

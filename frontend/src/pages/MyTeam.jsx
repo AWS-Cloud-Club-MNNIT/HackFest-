@@ -339,7 +339,7 @@ export default function MyTeam() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-4xl font-bold font-display text-[#d4af37]">{team.name}</h1>
+              <h1 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">{team.name}</h1>
               <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider border uppercase ${
                 isComplete 
                   ? "bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(74,222,128,0.2)]" 
