@@ -39,7 +39,8 @@ export default function MyTeam() {
       const eventRes = await API.get("/events/active");
       setEvent(eventRes.data);
 
-      if (teamRes.data.leaderId._id === userData._id) {
+      const actualLeaderId = teamRes.data.leaderId?._id || teamRes.data.leaderId;
+      if (actualLeaderId === userData._id) {
         const reqRes = await API.get(`/join-requests/team/${userData.teamId}`);
         setJoinRequests(reqRes.data);
       }
