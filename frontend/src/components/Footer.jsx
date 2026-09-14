@@ -15,7 +15,7 @@ export default function Footer() {
     }
     const element = document.getElementById(targetId)
     if (element) {
-      const topPos = element.getBoundingClientRect().top + window.scrollY - 75
+      const topPos = element.getBoundingClientRect().top + window.scrollY - 55
       window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
     }
   }
@@ -31,13 +31,31 @@ export default function Footer() {
           {/* Column 1: Brand & Description */}
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#d4af37]/60 bg-[#10182b] p-0.5 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                  <span className="text-xl">⚡</span>
+              <div className="flex flex-col gap-3">
+                {/* Clean Logos: AWS MNNIT Logo + HackFest Logo */}
+                <div className="flex items-center gap-4 flex-wrap">
+                  <img
+                    src="/images/aws_mnnit_logo.png"
+                    alt="AWS MNNIT Logo"
+                    className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)] transition duration-300 hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                  <span className="h-7 w-[1px] bg-[#d4af37]/35 hidden sm:block" />
+                  <img
+                    src="/images/hackfest/hackfest_logo.png"
+                    alt="HackFest 1.0 Logo"
+                    className="h-8 sm:h-10 w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] transition duration-300 hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
                 </div>
+
                 <div>
-                  <h3 className="font-harry text-3xl font-bold text-[#f4e8c1] tracking-wider">
-                    HOGWARTS SBG<span className="text-[#d4af37]">.</span>
+                  <h3 className="font-display text-2xl font-extrabold text-[#f4e8c1] tracking-wider">
+                    AWS MNNIT <span className="text-[#d4af37]">SBG</span>
                   </h3>
                   <p className="text-xs text-[#d4af37] font-semibold uppercase tracking-wider font-sans">
                     AWS Student Builder Group • MNNIT Allahabad
@@ -45,12 +63,12 @@ export default function Footer() {
                 </div>
               </div>
 
-              <p className="mt-5 max-w-sm text-xs leading-relaxed text-[#e8d7b5]/80 font-sans">
+              <p className="mt-4 max-w-sm text-xs leading-relaxed text-[#e8d7b5]/80 font-sans">
                 Empowering student builders at MNNIT Allahabad through hands-on cloud spellcraft, collaborative hackathons, and real-world project mastery.
               </p>
 
               {/* Campus Location Badge */}
-              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-[#d4af37]/40 bg-[#10182b]/80 px-4 py-1.5 text-xs text-[#f4e8c1]">
+              <div className="mt-5 inline-flex items-center gap-2.5 rounded-full border border-[#d4af37]/40 bg-[#10182b]/80 px-4 py-1.5 text-xs text-[#f4e8c1]">
                 <svg className="h-4 w-4 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -63,27 +81,27 @@ export default function Footer() {
           {/* Column 2: Navigation Links */}
           <div className="lg:col-span-3">
             <h4 className="font-harry text-xl font-bold uppercase tracking-wider text-[#d4af37]">
-              HOGWARTS NAV
+              QUICK NAVIGATION
             </h4>
             <ul className="mt-4 space-y-2.5 text-xs font-semibold uppercase tracking-wider font-sans">
               <li>
                 <a href="#hero" onClick={(e) => handleNavClick(e, '#hero')} className="transition hover:text-[#d4af37]">
-                  🏰 Entrance (Home)
+                  🏰 Home
                 </a>
               </li>
               <li>
                 <a href="#archives" onClick={(e) => handleNavClick(e, '#archives')} className="transition hover:text-[#d4af37]">
-                  📜 Archives (About SBG)
+                  📜 About SBG
                 </a>
               </li>
               <li>
                 <a href="#sorting" onClick={(e) => handleNavClick(e, '#sorting')} className="transition hover:text-[#d4af37]">
-                  🎩 Sorting Ceremony
+                  🎩 House Domains
                 </a>
               </li>
               <li>
                 <a href="#trials" onClick={(e) => handleNavClick(e, '#trials')} className="transition hover:text-[#d4af37]">
-                  ⚡ The Triwizard Challenge
+                  ⚡ Trials & Finale
                 </a>
               </li>
               <li>
@@ -97,8 +115,8 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#house-points" onClick={(e) => handleNavClick(e, '#house-points')} className="transition hover:text-[#d4af37]">
-                  🏆 House Points & Cup
+                <a href="#rewards" onClick={(e) => handleNavClick(e, '#rewards')} className="transition hover:text-[#d4af37]">
+                  🎁 Prizes & Rewards
                 </a>
               </li>
             </ul>

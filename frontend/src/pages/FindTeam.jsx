@@ -83,11 +83,11 @@ export default function FindTeam() {
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-10 text-center">
-          <Target className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-          <h2 className="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+          <Target className="w-12 h-12 text-[#d4af37] mx-auto mb-4" />
+          <h2 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             Find Your Squad
           </h2>
-          <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+          <p className="font-serif text-base sm:text-lg text-[#e8d7b5]/90 mt-2 max-w-xl mx-auto">
             Browse teams that are actively looking for members. Send a request to join them and prepare for the hackathon.
           </p>
         </div>

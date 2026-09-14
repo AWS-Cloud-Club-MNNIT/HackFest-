@@ -88,10 +88,10 @@ export default function CreateTeam() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-10 text-center">
           <Wand2 className="w-12 h-12 text-[#d4af37] mx-auto mb-4" />
-          <h2 className="text-4xl font-bold font-display text-[#d4af37]">
+          <h2 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             Forge Your Guild
           </h2>
-          <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+          <p className="font-serif text-base sm:text-lg text-[#e8d7b5]/90 mt-2 max-w-xl mx-auto">
             Assemble your team and choose your house. As the creator, you will be the Team Leader with exclusive powers to manage invites and final submissions.
           </p>
         </div>

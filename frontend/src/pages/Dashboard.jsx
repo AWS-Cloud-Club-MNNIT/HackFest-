@@ -118,10 +118,10 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12 text-center"
         >
-          <p className="text-[#d4af37] text-sm tracking-[0.3em] uppercase">
-            Participant Dashboard
+          <p className="font-display font-bold text-[#d4af37] text-xs sm:text-sm tracking-[0.3em] uppercase">
+            PARTICIPANT DASHBOARD
           </p>
-          <h2 className="text-4xl md:text-5xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
+          <h2 className="font-harry text-5xl md:text-6xl font-bold mt-2 text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             Welcome, {user.name}
           </h2>
         </motion.div>

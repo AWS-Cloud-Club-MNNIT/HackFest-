@@ -106,13 +106,23 @@ const DashboardNavbar = ({ user }) => {
 
   return (
     <nav className="border-b border-[#d4af37]/20 px-6 py-4 flex justify-between items-center bg-[#080b16] sticky top-0 z-50">
-      <Link to="/dashboard" className="group">
-        <h1 className="text-xl font-bold text-[#d4af37] group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all">
-          HACKFEST 1.0
-        </h1>
-        <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
-          Registration Portal
-        </p>
+      <Link to="/dashboard" className="group flex items-center gap-2.5">
+        <img
+          src="/images/aws_mnnit_logo.png"
+          alt="AWS MNNIT Logo"
+          className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+        <div>
+          <h1 className="font-harry text-2xl font-bold text-[#f4e8c1] tracking-wider group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all">
+            HACKFEST 1.0
+          </h1>
+          <p className="font-display text-[10px] font-semibold text-[#d4af37] tracking-widest uppercase font-sans">
+            AWS MNNIT Portal
+          </p>
+        </div>
       </Link>
 
       <div className="hidden md:flex items-center gap-8">
