@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { MailPlus } from "lucide-react";
+import { MailPlus, Eye } from "lucide-react";
 import API from "../services/api";
+import DetailModal from "./common/DetailModal";
+import ParticipantDetail from "./ParticipantDetail";
 
 const BrowseTeammates = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [name, setName] = useState("");
   const [skill, setSkill] = useState("");
   const [branch, setBranch] = useState("");
   const [college, setCollege] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -19,6 +24,7 @@ const BrowseTeammates = () => {
 
       const params = new URLSearchParams();
 
+      if (name.trim()) params.append("name", name.trim());
       if (skill.trim()) params.append("skill", skill.trim());
       if (branch.trim()) params.append("branch", branch.trim());
       if (college.trim()) params.append("college", college.trim());
@@ -106,14 +112,22 @@ const BrowseTeammates = () => {
         onSubmit={handleSearch}
         className="bg-[#101522] border border-[#d4af37]/20 rounded-2xl p-5 mb-8"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+          <input
+            type="text"
+            placeholder="Search name..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none text-white"
+          />
 
           <input
             type="text"
             placeholder="Search skill..."
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
-            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none"
+            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none text-white"
           />
 
           <input
@@ -121,7 +135,7 @@ const BrowseTeammates = () => {
             placeholder="Branch..."
             value={branch}
             onChange={(e) => setBranch(e.target.value)}
-            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none"
+            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none text-white"
           />
 
           <input
@@ -129,7 +143,7 @@ const BrowseTeammates = () => {
             placeholder="College..."
             value={college}
             onChange={(e) => setCollege(e.target.value)}
-            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none"
+            className="px-4 py-3 rounded-lg bg-[#080b16] border border-gray-700 focus:border-[#d4af37] outline-none text-white"
           />
 
         </div>
@@ -189,7 +203,7 @@ const BrowseTeammates = () => {
 
               {/* Skills */}
               <div className="flex flex-wrap gap-2 mt-4 mb-6">
-                {u.skills?.map((item, index) => (
+                {u.skills?.slice(0,3).map((item, index) => (
                   <span
                     key={index}
                     className="px-3 py-1 text-xs rounded-full bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20"
@@ -197,24 +211,27 @@ const BrowseTeammates = () => {
                     {item}
                   </span>
                 ))}
+                {u.skills?.length > 3 && (
+                  <span className="px-3 py-1 text-xs rounded-full bg-gray-800 text-gray-400 border border-gray-700">
+                    +{u.skills.length - 3} more
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="flex gap-2">
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(u._id);
-                  toast.success("User ID copied to clipboard!");
-                }}
-                className={`py-2.5 rounded-lg border border-gray-600 text-gray-400 hover:text-white transition text-xs font-bold ${isLeader ? 'w-1/3' : 'w-full'}`}
+                onClick={() => setSelectedUser(u)}
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37]/10 transition text-sm font-bold ${isLeader ? 'flex-1' : 'w-full'}`}
               >
-                Copy ID
+                <Eye className="w-4 h-4" />
+                View Details
               </button>
               
               {isLeader && (
                 <button
                   onClick={() => handleInvite(u._id)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition text-sm"
                 >
                   <MailPlus className="w-4 h-4" />
                   Invite
@@ -226,6 +243,32 @@ const BrowseTeammates = () => {
         ))}
 
       </div>
+
+      <DetailModal
+        isOpen={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        title="Participant Details"
+      >
+        <ParticipantDetail 
+          participant={selectedUser} 
+          actions={
+            <>
+              {isLeader && selectedUser && (
+                <button
+                  onClick={() => {
+                    handleInvite(selectedUser._id);
+                    setSelectedUser(null);
+                  }}
+                  className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                >
+                  Invite to Team
+                </button>
+              )}
+            </>
+          }
+        />
+      </DetailModal>
+
     </section>
   );
 };

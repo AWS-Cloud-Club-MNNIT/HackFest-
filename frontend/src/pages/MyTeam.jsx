@@ -4,7 +4,9 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import BrowseTeammates from "../components/BrowseTeammates";
-import { Users, UserMinus, QrCode, MailPlus, CheckCircle2, XCircle } from "lucide-react";
+import { Users, UserMinus, QrCode, MailPlus, CheckCircle2, XCircle, Eye } from "lucide-react";
+import DetailModal from "../components/common/DetailModal";
+import ParticipantDetail from "../components/ParticipantDetail";
 
 export default function MyTeam() {
   const navigate = useNavigate();
@@ -25,6 +27,8 @@ export default function MyTeam() {
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [newDomain, setNewDomain] = useState("");
   const [changingDomain, setChangingDomain] = useState(false);
+  
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchTeamData = async (userData) => {
     try {
@@ -93,12 +97,12 @@ export default function MyTeam() {
     try {
       await API.post("/invites", { teamId: team._id, toUserId: userId });
       toast.success("Invite sent successfully!");
-      // Optionally remove them from search results or mark as invited
       setSearchResults(prev => prev.filter(u => u._id !== userId));
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send invite");
     } finally {
       setInvitingId(null);
+      setSelectedUser(null);
     }
   };
 
@@ -162,6 +166,8 @@ export default function MyTeam() {
       fetchTeamData(user);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept request");
+    } finally {
+      setSelectedUser(null);
     }
   };
 
@@ -172,6 +178,8 @@ export default function MyTeam() {
       fetchTeamData(user);
     } catch (error) {
       toast.error("Failed to reject request");
+    } finally {
+      setSelectedUser(null);
     }
   };
 
@@ -239,27 +247,38 @@ export default function MyTeam() {
               </button>
             </form>
 
-            <div className="max-h-64 overflow-y-auto space-y-3 pr-2">
+            <div className="max-h-64 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
               {searchResults.length === 0 && !searching && searchQuery && (
                 <p className="text-center text-gray-500 py-4">No available participants found matching your query.</p>
               )}
               
               {searchResults.map(participant => (
-                <div key={participant._id} className="flex justify-between items-center p-4 bg-[#05070f] border border-[#d4af37]/20 rounded-xl">
+                <div key={participant._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-[#05070f] border border-[#d4af37]/20 rounded-xl gap-3">
                   <div>
                     <h4 className="font-bold text-white">{participant.name}</h4>
                     <p className="text-xs text-gray-400">{participant.email}</p>
                     <div className="text-[10px] uppercase tracking-wider text-[#d4af37] mt-1">
-                      {participant.college} • {participant.branch}
+                      {participant.college || 'No college'} • {participant.branch || 'No branch'}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleSendInvite(participant._id)}
-                    disabled={invitingId === participant._id || participant.teamId}
-                    className="px-4 py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded-lg hover:bg-[#d4af37]/20 transition disabled:opacity-50 text-sm font-bold"
-                  >
-                    {invitingId === participant._id ? "Inviting..." : "Invite"}
-                  </button>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => {
+                        setSelectedUser({ user: participant, action: 'invite' });
+                        setShowInviteModal(false);
+                      }}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-600 rounded hover:bg-gray-700 transition text-xs font-bold"
+                    >
+                      <Eye className="w-3 h-3" /> View
+                    </button>
+                    <button
+                      onClick={() => handleSendInvite(participant._id)}
+                      disabled={invitingId === participant._id || participant.teamId}
+                      className="flex-1 sm:flex-none px-4 py-1.5 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded hover:bg-[#d4af37]/20 transition disabled:opacity-50 text-xs font-bold"
+                    >
+                      {invitingId === participant._id ? "Inviting..." : "Invite"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -353,10 +372,10 @@ export default function MyTeam() {
             <h3 className="text-xl font-bold text-[#d4af37] font-display border-b border-[#d4af37]/20 pb-2">Roster</h3>
             
             {team.members.map((member) => (
-              <div key={member._id} className="parchment-card p-5 rounded-xl flex justify-between items-center transition-all hover:border-[#d4af37]/50">
+              <div key={member._id} className="parchment-card p-5 rounded-xl flex justify-between items-center transition-all hover:border-[#d4af37]/50 group cursor-pointer" onClick={() => setSelectedUser({ user: member, action: 'view' })}>
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#10182b] border border-[#d4af37]/40 flex items-center justify-center font-bold text-[#d4af37]">
-                    {member.name.charAt(0)}
+                    {member.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <h4 className="font-semibold text-[#e8d7b5] flex items-center gap-2">
@@ -369,15 +388,21 @@ export default function MyTeam() {
                   </div>
                 </div>
                 
-                {canEdit && member._id !== user._id && (
-                  <button 
-                    onClick={() => handleRemoveMember(member._id)}
-                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition"
-                    title="Remove from team"
-                  >
-                    <UserMinus className="w-5 h-5" />
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition px-2">View Profile</span>
+                  {canEdit && member._id !== user._id && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveMember(member._id);
+                      }}
+                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition"
+                      title="Remove from team"
+                    >
+                      <UserMinus className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -455,11 +480,21 @@ export default function MyTeam() {
                 ) : (
                   <div className="space-y-3">
                     {joinRequests.map(req => (
-                      <div key={req._id} className="p-3 border border-[#d4af37]/20 rounded-lg bg-[#05070f]">
-                        <p className="text-sm font-semibold text-[#e8d7b5]">{req.fromUserId.name}</p>
-                        <p className="text-[10px] text-gray-500 mb-3">{req.fromUserId.skills?.join(', ') || 'No skills listed'}</p>
+                      <div key={req._id} className="p-3 border border-[#d4af37]/20 rounded-lg bg-[#05070f] flex flex-col gap-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-semibold text-[#e8d7b5]">{req.fromUserId.name}</p>
+                            <p className="text-[10px] text-gray-500">{req.fromUserId.skills?.slice(0,2).join(', ') || 'No skills listed'}</p>
+                          </div>
+                          <button
+                            onClick={() => setSelectedUser({ user: req.fromUserId, action: 'request', reqId: req._id })}
+                            className="text-xs flex items-center gap-1 bg-gray-800 text-gray-300 px-2 py-1 rounded hover:bg-gray-700 transition"
+                          >
+                            <Eye className="w-3 h-3" /> View
+                          </button>
+                        </div>
                         
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mt-1">
                           <button 
                             onClick={() => handleAcceptRequest(req._id)}
                             disabled={!canEdit || isComplete}
@@ -491,6 +526,55 @@ export default function MyTeam() {
           </div>
         )}
       </main>
+
+      {/* Reusable Participant Detail Modal */}
+      <DetailModal
+        isOpen={!!selectedUser}
+        onClose={() => {
+          setSelectedUser(null);
+          // if we opened from the invite modal, show it again
+          if (selectedUser?.action === 'invite' && searchResults.length > 0) {
+             setShowInviteModal(true);
+          }
+        }}
+        title="Participant Details"
+      >
+        {selectedUser && (
+          <ParticipantDetail 
+            participant={selectedUser.user}
+            actions={
+              <>
+                {selectedUser.action === 'invite' && (
+                  <button
+                    onClick={() => handleSendInvite(selectedUser.user._id)}
+                    className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                  >
+                    Invite to Team
+                  </button>
+                )}
+                {selectedUser.action === 'request' && (
+                  <>
+                    <button
+                      onClick={() => handleRejectRequest(selectedUser.reqId)}
+                      className="px-6 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-lg transition"
+                    >
+                      Reject Request
+                    </button>
+                    <button
+                      onClick={() => handleAcceptRequest(selectedUser.reqId)}
+                      disabled={!canEdit || isComplete}
+                      className="px-6 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-bold rounded-lg transition disabled:opacity-50"
+                    >
+                      Accept Request
+                    </button>
+                  </>
+                )}
+              </>
+            }
+          />
+        )}
+      </DetailModal>
+
     </div>
   );
 }

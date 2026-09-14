@@ -4,7 +4,9 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import { motion } from "framer-motion";
-import { User, CheckCircle2, AlertCircle } from "lucide-react";
+import { User, CheckCircle2, AlertCircle, Eye } from "lucide-react";
+import DetailModal from "../components/common/DetailModal";
+import TeamDetail from "../components/TeamDetail";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ const Dashboard = () => {
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [invites, setInvites] = useState([]);
   const [processingInvite, setProcessingInvite] = useState(null);
+  
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   useEffect(() => {
     const getUserAndEvent = async () => {
@@ -71,6 +75,7 @@ const Dashboard = () => {
       toast.error(error.response?.data?.message || "Failed to accept invite");
     } finally {
       setProcessingInvite(null);
+      setSelectedTeam(null);
     }
   };
 
@@ -84,6 +89,7 @@ const Dashboard = () => {
       toast.error(error.response?.data?.message || "Failed to reject invite");
     } finally {
       setProcessingInvite(null);
+      setSelectedTeam(null);
     }
   };
 
@@ -211,26 +217,23 @@ const Dashboard = () => {
                         {invites.map((invite) => (
                           <div key={invite._id} className="bg-[#101522] border border-[#d4af37]/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                              <h5 className="font-bold text-white text-lg">{invite.teamId.name}</h5>
-                              <p className="text-xs text-gray-400">
+                              <h5 className="font-bold text-white text-lg flex items-center gap-2">
+                                {invite.teamId.name}
+                                <span className="text-xs bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30 uppercase tracking-wider">
+                                  Invite
+                                </span>
+                              </h5>
+                              <p className="text-xs text-gray-400 mt-1">
                                 Domain: <span className="text-[#d4af37]">{invite.teamId.domain || "N/A"}</span> • 
                                 Invited by: <span className="text-[#d4af37]">{invite.fromUserId.name}</span>
                               </p>
                             </div>
                             <div className="flex gap-2 w-full sm:w-auto">
                               <button
-                                onClick={() => handleAcceptInvite(invite._id)}
-                                disabled={processingInvite === invite._id}
-                                className="flex-1 sm:flex-none px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 rounded-lg text-sm font-bold transition disabled:opacity-50"
+                                onClick={() => setSelectedTeam(invite)}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-600 hover:bg-gray-700 rounded-lg text-sm font-bold transition"
                               >
-                                Accept
-                              </button>
-                              <button
-                                onClick={() => handleRejectInvite(invite._id)}
-                                disabled={processingInvite === invite._id}
-                                className="flex-1 sm:flex-none px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 rounded-lg text-sm font-bold transition disabled:opacity-50"
-                              >
-                                Reject
+                                <Eye className="w-4 h-4" /> View Team
                               </button>
                             </div>
                           </div>
@@ -303,6 +306,38 @@ const Dashboard = () => {
         </div>
 
       </main>
+
+      {/* Invite Detail Modal */}
+      <DetailModal
+        isOpen={!!selectedTeam}
+        onClose={() => setSelectedTeam(null)}
+        title="Team Invitation Details"
+      >
+        {selectedTeam && (
+          <TeamDetail 
+            team={selectedTeam.teamId}
+            actions={
+              <>
+                <button
+                  onClick={() => handleRejectInvite(selectedTeam._id)}
+                  disabled={processingInvite === selectedTeam._id}
+                  className="px-6 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-lg transition disabled:opacity-50"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleAcceptInvite(selectedTeam._id)}
+                  disabled={processingInvite === selectedTeam._id}
+                  className="px-6 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-bold rounded-lg transition disabled:opacity-50"
+                >
+                  Accept Invite
+                </button>
+              </>
+            }
+          />
+        )}
+      </DetailModal>
+
     </div>
   );
 };

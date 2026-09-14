@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
-import { Users, Search, Target, ShieldPlus } from "lucide-react";
+import { Users, Search, Target, ShieldPlus, Eye } from "lucide-react";
+import DetailModal from "../components/common/DetailModal";
+import TeamDetail from "../components/TeamDetail";
 
 export default function FindTeam() {
   const navigate = useNavigate();
@@ -12,6 +14,8 @@ export default function FindTeam() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [requesting, setRequesting] = useState(null);
+  
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -50,6 +54,7 @@ export default function FindTeam() {
       toast.error(error.response?.data?.message || "Failed to send request");
     } finally {
       setRequesting(null);
+      setSelectedTeam(null);
     }
   };
 
@@ -128,31 +133,48 @@ export default function FindTeam() {
                     <span className="block">Status: <span className="text-green-400">Looking for members</span></span>
                   </div>
                   
-                  <button
-                    onClick={() => handleRequestJoin(team._id)}
-                    disabled={requesting === team._id}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50"
-                  >
-                    {requesting === team._id ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending Request...
-                      </>
-                    ) : (
-                      <>
-                        <ShieldPlus className="w-4 h-4" /> Request to Join
-                      </>
-                    )}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedTeam(team)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-blue-500/40 text-blue-400 hover:bg-blue-500/10 transition text-sm font-bold"
+                    >
+                      <Eye className="w-4 h-4" /> View Details
+                    </button>
+                    <button
+                      onClick={() => handleRequestJoin(team._id)}
+                      disabled={requesting === team._id}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition disabled:opacity-50 text-sm"
+                    >
+                      {requesting === team._id ? "Sending..." : "Request"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </main>
+
+      <DetailModal
+        isOpen={!!selectedTeam}
+        onClose={() => setSelectedTeam(null)}
+        title="Team Details"
+      >
+        {selectedTeam && (
+          <TeamDetail 
+            team={selectedTeam} 
+            actions={
+              <button
+                onClick={() => handleRequestJoin(selectedTeam._id)}
+                disabled={requesting === selectedTeam._id}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition disabled:opacity-50"
+              >
+                {requesting === selectedTeam._id ? "Sending Request..." : "Request to Join Team"}
+              </button>
+            }
+          />
+        )}
+      </DetailModal>
     </div>
   );
 }

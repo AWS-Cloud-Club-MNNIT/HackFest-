@@ -59,8 +59,15 @@ export const sendInvite = async (req, res) => {
 export const getReceivedInvites = async (req, res) => {
   try {
     const invites = await Invite.find({ toUserId: req.user._id, status: 'pending' })
-      .populate('teamId', 'name domain')
-      .populate('fromUserId', 'name email');
+      .populate({
+        path: 'teamId',
+        populate: [
+          { path: 'leaderId', select: '-passwordHash' },
+          { path: 'members', select: '-passwordHash' },
+          { path: 'eventId', select: 'name teamSizeMax' }
+        ]
+      })
+      .populate('fromUserId', '-passwordHash');
     res.status(200).json(invites);
   } catch (error) {
     res.status(500).json({ message: error.message });

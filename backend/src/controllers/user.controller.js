@@ -49,7 +49,7 @@ export const searchParticipants = async (req, res) => {
       role: "participant",
       _id: { $ne: req.user._id }
     })
-    .select("name email college branch skills lookingForTeam teamId")
+    .select("-passwordHash")
     .limit(10);
 
     res.status(200).json({ users });
@@ -62,13 +62,20 @@ export const searchParticipants = async (req, res) => {
 // GET /api/users/looking-for-team
 export const getUsersLookingForTeam = async (req, res) => {
   try {
-    const { skill, branch, college } = req.query;
+    const { name, skill, branch, college } = req.query;
 
     const filter = {
       lookingForTeam: true,
       isBlocked: false,
       teamId: null,
     };
+
+    if (name) {
+      filter.name = {
+        $regex: name,
+        $options: "i",
+      };
+    }
 
     if (skill) {
       filter.skills = {

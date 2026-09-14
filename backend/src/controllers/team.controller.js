@@ -52,7 +52,7 @@ export const createTeam = async (req, res) => {
 // GET /api/teams/:id
 export const getTeam = async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id).populate('members', '-passwordHash');
+    const team = await Team.findById(req.params.id).populate('members', '-passwordHash').populate('leaderId', '-passwordHash').populate('eventId', 'name teamSizeMax registrationDeadline');
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.status(200).json(team);
   } catch (error) {
@@ -253,7 +253,7 @@ export const getAvailableTeams = async (req, res) => {
       lookingForTeammates: true,
       $expr: { $lt: [{ $size: "$members" }, 4] },
       status: 'forming'
-    }).populate('leaderId', 'name email').populate('members', 'name');
+    }).populate('leaderId', '-passwordHash').populate('members', '-passwordHash').populate('eventId', 'name teamSizeMax');
     
     res.status(200).json(teams);
   } catch (error) {

@@ -60,7 +60,7 @@ export const getTeamJoinRequests = async (req, res) => {
     }
 
     const requests = await JoinRequest.find({ teamId: team._id, status: 'pending' })
-      .populate('fromUserId', 'name email skills college branch year');
+      .populate('fromUserId', '-passwordHash');
       
     res.status(200).json(requests);
   } catch (error) {
