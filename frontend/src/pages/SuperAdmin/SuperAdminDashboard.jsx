@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_URL = "http://localhost:5000/api/admin";
+import API from "../../services/api";
+import UsersTab from "./tabs/UsersTab";
+import TeamsTab from "./tabs/TeamsTab";
+import BroadCastTab from "./tabs/BroadCastTab";
+import EventsTab from "./tabs/EventsTab";
+import OverviewTab from "./tabs/OverviewTab";
 
 const menuItems = [
   {
@@ -138,13 +143,8 @@ function SuperAdminDashboard() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/dashboard`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load dashboard");
-      }
-
-      const data = await response.json();
+      const response = await API.get("/super-admin/stats");
+      const data = response.data;
 
       setDashboard(data.dashboard);
     } catch (error) {
@@ -163,13 +163,8 @@ function SuperAdminDashboard() {
     try {
       setEventsLoading(true);
 
-      const response = await fetch(`${API_URL}/events`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load events");
-      }
-
-      const data = await response.json();
+      const response = await API.get("/super-admin/events");
+      const data = response.data;
 
       setEvents(data.events || []);
     } catch (error) {
@@ -289,24 +284,13 @@ function SuperAdminDashboard() {
       };
 
       const url = editingEvent
-        ? `${API_URL}/events/${editingEvent._id}`
-        : `${API_URL}/events`;
+        ? `/super-admin/events/${editingEvent._id}`
+        : `/super-admin/events`;
 
-      const method = editingEvent ? "PUT" : "POST";
+      const method = editingEvent ? "put" : "post";
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Operation failed");
-      }
+      const response = await API[method](url, payload);
+      const data = response.data;
 
       setShowEventModal(false);
 
@@ -336,18 +320,8 @@ function SuperAdminDashboard() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/events/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete event");
-      }
+      const response = await API.delete(`/super-admin/events/${id}`);
+      const data = response.data;
 
       await fetchEvents();
       await fetchDashboard();
@@ -399,42 +373,23 @@ function SuperAdminDashboard() {
 
   const renderContent = () => {
     if (activeMenu === "overview") {
-      return (
-        <Overview
-          dashboard={dashboard}
-          events={events}
-          loading={loading}
-          onCreateEvent={openCreateEvent}
-          onNavigate={setActiveMenu}
-          formatDate={formatDate}
-          handleRefresh={handleRefresh}
-        />
-      );
+      return <OverviewTab onNavigateTab={setActiveMenu} />;
     }
 
     if (activeMenu === "events") {
-      return (
-        <EventsPage
-          events={events}
-          loading={eventsLoading}
-          onCreate={openCreateEvent}
-          onEdit={openEditEvent}
-          onDelete={handleDeleteEvent}
-          formatDate={formatDate}
-        />
-      );
+      return <EventsTab />;
     }
 
     if (activeMenu === "users") {
-      return <ComingSoonPage icon="♙" title="Users" />;
+      return <UsersTab />;
     }
 
     if (activeMenu === "teams") {
-      return <ComingSoonPage icon="♜" title="Teams" />;
+      return <TeamsTab />;
     }
 
     if (activeMenu === "broadcast") {
-      return <ComingSoonPage icon="✦" title="Broadcast" />;
+      return <BroadCastTab />;
     }
 
     return null;
@@ -839,7 +794,6 @@ function SuperAdminDashboard() {
 // =============================================================
 // OVERVIEW
 // =============================================================
-
 function Overview({
   dashboard,
   events,

@@ -149,6 +149,36 @@ const deleteEvent = async (req, res) => {
 };
 
 // ===============================
+// EXTEND DEADLINE
+// ===============================
+const extendDeadline = async (req, res) => {
+  try {
+    const { registrationDeadline } = req.body;
+    if (!registrationDeadline) {
+      return res.status(400).json({ success: false, message: "New deadline is required" });
+    }
+    
+    const event = await Event.findByIdAndUpdate(req.params.id, { registrationDeadline }, { new: true });
+    
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Deadline extended successfully",
+      event,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to extend deadline",
+      error: error.message,
+    });
+  }
+};
+
+// ===============================
 // SUPER ADMIN DASHBOARD
 // ===============================
 const getDashboardOverview = async (req, res) => {
@@ -157,6 +187,28 @@ const getDashboardOverview = async (req, res) => {
     const activeEvents = await Event.countDocuments({ isActive: true });
     const totalUsers = await User.countDocuments();
     const totalTeams = await Team.countDocuments();
+    
+    const teams = await Team.find();
+    
+    // Domain-wise split
+    const domains = {};
+    let checkedInTeams = 0;
+    let completeTeams = 0;
+    let formingTeams = 0;
+
+    teams.forEach(team => {
+      // Domains
+      if (team.domain) {
+        domains[team.domain] = (domains[team.domain] || 0) + 1;
+      }
+      // Status
+      if (team.status === "complete" || team.status === "locked") completeTeams++;
+      if (team.status === "forming") formingTeams++;
+      // Checked in
+      if (team.checkedIn) checkedInTeams++;
+    });
+
+    const checkedInPercentage = totalTeams > 0 ? ((checkedInTeams / totalTeams) * 100).toFixed(2) : 0;
 
     res.status(200).json({
       success: true,
@@ -165,12 +217,16 @@ const getDashboardOverview = async (req, res) => {
         activeEvents,
         totalUsers,
         totalTeams,
+        domains,
+        checkedInPercentage: Number(checkedInPercentage),
+        formingTeams,
+        completeTeams,
       },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard overview",
+      message: "Failed to fetch dashboard stats",
       error: error.message,
     });
   }
@@ -181,7 +237,15 @@ const getDashboardOverview = async (req, res) => {
 // ===============================
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-passwordHash").sort({
+    const { college, branch, lookingForTeam, blocked } = req.query;
+    
+    let filter = {};
+    if (college) filter.college = college;
+    if (branch) filter.branch = branch;
+    if (lookingForTeam !== undefined) filter.lookingForTeam = lookingForTeam === "true";
+    if (blocked !== undefined) filter.isBlocked = blocked === "true";
+
+    const users = await User.find(filter).select("-passwordHash").sort({
       createdAt: -1,
     });
 
@@ -264,6 +328,38 @@ const toggleBlockUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update user block status",
+      error: error.message,
+    });
+  }
+};
+
+// ===============================
+// PROMOTE / DEMOTE USER ROLE
+// ===============================
+const updateUserRole = async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    // Simple toggle between participant and super_admin
+    targetUser.role = targetUser.role === "super_admin" ? "participant" : "super_admin";
+    await targetUser.save();
+
+    res.status(200).json({
+      success: true,
+      message: `User role updated to ${targetUser.role}`,
+      user: {
+        _id: targetUser._id,
+        role: targetUser.role,
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update user role",
       error: error.message,
     });
   }
@@ -487,6 +583,88 @@ const deleteTeam = async (req, res) => {
 };
 
 // ===============================
+// FORCE ADD MEMBER
+// ===============================
+const forceAddMember = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "userId is required in body" });
+    }
+
+    const team = await Team.findById(req.params.id);
+    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
+    
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    if (team.members.includes(userId)) {
+      return res.status(400).json({ success: false, message: "User is already in this team" });
+    }
+
+    team.members.push(userId);
+    await team.save();
+
+    user.teamId = team._id;
+    user.lookingForTeam = false;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Member force-added successfully", team });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to force add member", error: error.message });
+  }
+};
+
+// ===============================
+// FORCE REMOVE MEMBER
+// ===============================
+const forceRemoveMember = async (req, res) => {
+  try {
+    const teamId = req.params.id;
+    const userId = req.params.userId;
+
+    const team = await Team.findById(teamId);
+    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
+
+    if (team.leaderId.toString() === userId.toString()) {
+      return res.status(400).json({ success: false, message: "Cannot remove the team leader. Change leader or delete team." });
+    }
+
+    team.members = team.members.filter(id => id.toString() !== userId.toString());
+    await team.save();
+
+    const user = await User.findById(userId);
+    if (user) {
+      user.teamId = null;
+      user.lookingForTeam = true;
+      await user.save();
+    }
+
+    res.status(200).json({ success: true, message: "Member force-removed successfully", team });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to force remove member", error: error.message });
+  }
+};
+
+// ===============================
+// MARK CHECKED IN
+// ===============================
+const markCheckedIn = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
+
+    team.checkedIn = true;
+    team.checkedInAt = new Date();
+    await team.save();
+
+    res.status(200).json({ success: true, message: "Team marked as checked in", team });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to check in team", error: error.message });
+  }
+};
+
+// ===============================
 // CSV EXPORT
 // ===============================
 const escapeCsvField = (value) => {
@@ -610,6 +788,7 @@ export {
   getAllUsers,
   getUserById,
   toggleBlockUser,
+  updateUserRole,
   broadcastNotification,
   getAllTeams,
   getTeamById,
@@ -618,4 +797,8 @@ export {
   deleteTeam,
   exportUsers,
   exportTeams,
+  forceAddMember,
+  forceRemoveMember,
+  markCheckedIn,
+  extendDeadline,
 };
