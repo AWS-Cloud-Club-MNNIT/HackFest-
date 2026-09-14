@@ -9,6 +9,15 @@ import {
   getDashboardOverview,
   getAllUsers,
   getUserById,
+  toggleBlockUser,
+  broadcastNotification,
+  getAllTeams,
+  getTeamById,
+  lockTeam,
+  unlockTeam,
+  deleteTeam,
+  exportUsers,
+  exportTeams,
 } from "../controllers/superAdmin.controller.js";
 
 import isSuperAdmin from "../middleware/isSuperAdmin.middleware.js";
@@ -42,5 +51,35 @@ router.delete("/events/:id", isSuperAdmin, deleteEvent);
 router.get("/users", isSuperAdmin, getAllUsers);
 
 router.get("/users/:id", isSuperAdmin, getUserById);
+
+router.patch("/users/:id/toggle-block", isSuperAdmin, toggleBlockUser);
+
+// ===============================
+// TEAM MANAGEMENT
+// ===============================
+
+router.get("/teams", isSuperAdmin, getAllTeams);
+
+router.get("/teams/:id", isSuperAdmin, getTeamById);
+
+router.patch("/teams/:id/lock", isSuperAdmin, lockTeam);
+
+router.patch("/teams/:id/unlock", isSuperAdmin, unlockTeam);
+
+router.delete("/teams/:id", isSuperAdmin, deleteTeam);
+
+// ===============================
+// NOTIFICATIONS (BROADCAST)
+// ===============================
+
+router.post("/notifications/broadcast", isSuperAdmin, broadcastNotification);
+
+// ===============================
+// EXPORT
+// ===============================
+
+router.get("/export/users", isSuperAdmin, exportUsers);
+
+router.get("/export/teams", isSuperAdmin, exportTeams);
 
 export default router;

@@ -17,7 +17,8 @@ const notificationSchema = new mongoose.Schema(
         'request_accepted', 
         'member_left', 
         'domain_changed', 
-        'deadline_reminder'
+        'deadline_reminder',
+        'announcement', // super-admin broadcast to participants
       ],
       required: true,
     },
