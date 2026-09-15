@@ -86,7 +86,7 @@ export default function QRPass() {
 
           <div className="bg-white p-4 rounded-xl shadow-inner inline-block mb-8 relative">
             <QRCodeCanvas 
-              value={qrToken || "invalid"} 
+              value={qrToken ? `${window.location.origin}/scan/${qrToken}` : "invalid"} 
               size={200}
               level={"H"}
               fgColor={"#10182b"}

@@ -677,18 +677,20 @@ export default function MyTeam() {
                              {isComplete ? 'Team Complete' : 'Mark as Complete'}
                            </span>
                            <span className="block text-xs text-gray-500 mt-0.5">
-                             {isComplete ? 'Uncheck to recruit again' : 'Ready for submission?'}
+                             {isComplete ? (team.members.length >= (event?.teamSizeMax || 4) ? 'Team is full and ready for submission' : 'Uncheck to recruit again') : 'Ready for submission?'}
                            </span>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={isComplete}
-                            onChange={handleToggleStatus}
-                          />
-                          <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-black"></div>
-                        </label>
+                        {team.members.length < (event?.teamSizeMax || 4) && (
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={isComplete}
+                              onChange={handleToggleStatus}
+                            />
+                            <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-black"></div>
+                          </label>
+                        )}
                       </div>
                     )}
                     

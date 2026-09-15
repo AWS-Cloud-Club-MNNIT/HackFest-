@@ -60,11 +60,16 @@ export default function OrganizerScan() {
     }
   }, [loading, user, scanSessionKey]);
 
-  const handleQRScan = async (qrToken, scanner) => {
+  const handleQRScan = async (decodedText, scanner) => {
     setScanError(null);
     setScannedTeam(null);
     try {
-      const res = await API.get(`/teams/scan/${qrToken}`);
+      let token = decodedText;
+      if (decodedText.includes('/scan/')) {
+        const parts = decodedText.split('/scan/');
+        token = parts[parts.length - 1];
+      }
+      const res = await API.get(`/teams/scan/${token}`);
       setScannedTeam(res.data);
     } catch (error) {
       setScanError(error.response?.data?.message || "Invalid QR Code");
