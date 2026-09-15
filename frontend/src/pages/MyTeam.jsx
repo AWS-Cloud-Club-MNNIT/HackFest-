@@ -146,9 +146,33 @@ export default function MyTeam() {
       });
       toast.success(`Team is now ${!previousState ? 'looking for teammates' : 'hidden from discovery'}`);
     } catch (error) {
-      // Revert
       setTeam(prev => ({ ...prev, lookingForTeammates: previousState }));
       toast.error("Failed to update team visibility");
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    const isComplete = team.status === 'complete';
+    const previousStatus = team.status;
+    const previousLooking = team.lookingForTeammates;
+
+    // Optimistic Update
+    setTeam(prev => ({
+      ...prev,
+      status: isComplete ? 'forming' : 'complete',
+      lookingForTeammates: isComplete ? prev.lookingForTeammates : false
+    }));
+
+    try {
+      await API.patch(`/teams/${team._id}/toggle-status`);
+      toast.success(isComplete ? "Team marked as Forming" : "Team marked as Complete!");
+    } catch (error) {
+      setTeam(prev => ({
+        ...prev,
+        status: previousStatus,
+        lookingForTeammates: previousLooking
+      }));
+      toast.error(error.response?.data?.message || "Failed to update team status");
     }
   };
 
@@ -626,7 +650,7 @@ export default function MyTeam() {
                       </button>
                     )}
 
-                    {canEdit && (
+                    {canEdit && !isComplete && (
                       <div className="flex items-center justify-between bg-white/5 border border-white/5 p-4 rounded-xl">
                         <div>
                            <span className="block text-sm font-medium text-gray-300">Recruiting</span>
@@ -638,9 +662,32 @@ export default function MyTeam() {
                             className="sr-only peer"
                             checked={team.lookingForTeammates || false}
                             onChange={handleToggleLookingForTeammates}
-                            disabled={isComplete}
                           />
                           <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37] peer-checked:after:bg-black"></div>
+                        </label>
+                      </div>
+                    )}
+
+                    {isLeader && team.members.length >= (event?.teamSizeMin || 2) && team.members.length <= (event?.teamSizeMax || 4) && (
+                      <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                        isComplete ? 'bg-green-900/10 border-green-500/30' : 'bg-[#d4af37]/5 border-[#d4af37]/20'
+                      }`}>
+                        <div>
+                           <span className={`block text-sm font-bold ${isComplete ? 'text-green-400' : 'text-[#d4af37]'}`}>
+                             {isComplete ? 'Team Complete' : 'Mark as Complete'}
+                           </span>
+                           <span className="block text-xs text-gray-500 mt-0.5">
+                             {isComplete ? 'Uncheck to recruit again' : 'Ready for submission?'}
+                           </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={isComplete}
+                            onChange={handleToggleStatus}
+                          />
+                          <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-black"></div>
                         </label>
                       </div>
                     )}

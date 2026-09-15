@@ -285,3 +285,36 @@ export const getAvailableTeams = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// PATCH /api/teams/:id/toggle-status
+export const toggleStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const team = await Team.findById(id).populate('eventId');
+    
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.leaderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only team leader can change status' });
+    }
+    
+    if (team.status === 'forming') {
+      const minSize = team.eventId.teamSizeMin || 2;
+      const maxSize = team.eventId.teamSizeMax || 4;
+      const currentSize = team.members.length;
+      
+      if (currentSize < minSize || currentSize > maxSize) {
+         return res.status(400).json({ message: `Team size must be between ${minSize} and ${maxSize} to complete.` });
+      }
+      
+      team.status = 'complete';
+      team.lookingForTeammates = false; // Disable looking for teammates
+    } else {
+      team.status = 'forming';
+    }
+    
+    await team.save();
+    res.status(200).json({ message: `Team is now ${team.status}`, team });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -8,6 +8,7 @@ import {
   getQRCode, 
   scanQR,
   toggleLookingForTeammates,
+  toggleStatus,
   getAvailableTeams
 } from '../controllers/team.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
@@ -25,6 +26,9 @@ router.get('/:id', protect, getTeam);
 
 // PATCH: Toggle looking for teammates (Leader only)
 router.patch('/:id/looking-for-teammates', protect, toggleLookingForTeammates);
+
+// PATCH: Toggle team status between forming and complete (Leader only)
+router.patch('/:id/toggle-status', protect, toggleStatus);
 
 // PATCH: Change domain (Leader only)
 router.patch('/:id/domain', protect, updateDomain);
