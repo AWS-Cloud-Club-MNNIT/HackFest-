@@ -455,6 +455,7 @@ const getAllTeams = async (req, res) => {
       .populate("leaderId", "name email college")
       .populate("members", "name email college")
       .populate("eventId", "title")
+      .populate("memberHistory.userId", "name email college isBlocked")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -476,7 +477,8 @@ const getTeamById = async (req, res) => {
     const team = await Team.findById(req.params.id)
       .populate("leaderId", "name email college")
       .populate("members", "name email college")
-      .populate("eventId", "title domains");
+      .populate("eventId", "title domains")
+      .populate("memberHistory.userId", "name email college isBlocked");
 
     if (!team) {
       return res.status(404).json({
@@ -736,6 +738,7 @@ const exportTeams = async (req, res) => {
       "leaderName",
       "leaderEmail",
       "memberCount",
+      "quitOrRemovedCount",
       "domain",
       "status",
       "checkedIn",
@@ -752,6 +755,8 @@ const exportTeams = async (req, res) => {
         leaderName: t.leaderId?.name || "",
         leaderEmail: t.leaderId?.email || "",
         memberCount: (t.members || []).length,
+        quitOrRemovedCount: (t.memberHistory || []).filter((h) => !h.rejoined)
+          .length,
         domain: t.domain || "",
         status: t.status,
         checkedIn: t.checkedIn,
@@ -784,6 +789,7 @@ export {
   getEventById,
   updateEvent,
   deleteEvent,
+  extendDeadline,
   getDashboardOverview,
   getAllUsers,
   getUserById,
@@ -795,10 +801,9 @@ export {
   lockTeam,
   unlockTeam,
   deleteTeam,
-  exportUsers,
-  exportTeams,
   forceAddMember,
   forceRemoveMember,
   markCheckedIn,
-  extendDeadline,
+  exportUsers,
+  exportTeams,
 };

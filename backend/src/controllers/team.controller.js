@@ -56,7 +56,6 @@ export const getTeam = async (req, res) => {
       .populate('members', '-passwordHash')
       .populate('leaderId', '-passwordHash')
       .populate('eventId', 'name teamSizeMax registrationDeadline');
-      
     if (!team) return res.status(404).json({ message: 'Team not found' });
 
     // Security check: Only allow actual team members or super_admin to see email and phone
@@ -144,9 +143,17 @@ export const removeMember = async (req, res) => {
       return res.status(404).json({ message: 'User is not in this team' });
     }
 
+    const removedUser = await User.findById(userId).select('name email');
+
     team.members = team.members.filter(member => member.toString() !== userId);
     team.status = 'forming';
-    
+    team.memberHistory.push({
+      userId,
+      name: removedUser?.name,
+      email: removedUser?.email,
+      action: 'removed',
+    });
+
     await team.save();
     await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     
@@ -185,7 +192,13 @@ export const leaveTeam = async (req, res) => {
 
     team.members = team.members.filter(member => member.toString() !== userId);
     team.status = 'forming';
-    
+    team.memberHistory.push({
+      userId,
+      name: req.user.name,
+      email: req.user.email,
+      action: 'left',
+    });
+
     await team.save();
     await User.findByIdAndUpdate(userId, { $unset: { teamId: 1 }, lookingForTeam: true });
     

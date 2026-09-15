@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import API from "../../../services/api";
 
@@ -7,6 +7,7 @@ const TeamsTab = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchTeams = async () => {
     try {
@@ -97,63 +98,143 @@ const TeamsTab = () => {
                 <th className="py-3 px-4">Domain</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Checked In</th>
+                <th className="py-3 px-4">Quit / Removed</th>
                 <th className="py-3 px-4"></th>
               </tr>
             </thead>
             <tbody>
-              {teams.map((team) => (
-                <tr
-                  key={team._id}
-                  className="border-b border-[#d4af37]/10 hover:bg-[#d4af37]/5"
-                >
-                  <td className="py-3 px-4 text-white font-medium">
-                    {team.name}
-                    {team.lockedBySuperAdmin && (
-                      <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">
-                        LOCKED
-                      </span>
+              {teams.map((team) => {
+                const history = team.memberHistory || [];
+                // "Open" quits: left/removed and not yet rejoined.
+                const openQuits = history.filter((h) => !h.rejoined);
+                const isExpanded = expandedId === team._id;
+
+                return (
+                  <Fragment key={team._id}>
+                    <tr className="border-b border-[#d4af37]/10 hover:bg-[#d4af37]/5">
+                      <td className="py-3 px-4 text-white font-medium">
+                        {team.name}
+                        {team.lockedBySuperAdmin && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">
+                            LOCKED
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {team.eventId?.title || "—"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {team.leaderId?.name || "—"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {(team.members || []).length}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {team.domain || "—"}
+                      </td>
+                      <td className="py-3 px-4 capitalize text-gray-400">
+                        {team.status}
+                      </td>
+                      <td className="py-3 px-4">
+                        {team.checkedIn ? (
+                          <span className="text-emerald-400 text-xs">Yes</span>
+                        ) : (
+                          <span className="text-gray-500 text-xs">No</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        {history.length === 0 ? (
+                          <span className="text-gray-600 text-xs">—</span>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setExpandedId(isExpanded ? null : team._id)
+                            }
+                            className="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition"
+                          >
+                            {openQuits.length > 0
+                              ? `${openQuits.length} pending`
+                              : `${history.length} resolved`}
+                            {isExpanded ? " ▲" : " ▼"}
+                          </button>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <button
+                          disabled={busyId === team._id}
+                          onClick={() => handleToggleLock(team)}
+                          className="text-xs text-[#d4af37] hover:underline mr-3 disabled:opacity-50"
+                        >
+                          {team.lockedBySuperAdmin ? "Unlock" : "Lock"}
+                        </button>
+                        <button
+                          disabled={busyId === team._id}
+                          onClick={() => handleDelete(team)}
+                          className="text-xs text-red-400 hover:underline disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && history.length > 0 && (
+                      <tr className="bg-[#080b16]">
+                        <td colSpan={9} className="py-3 px-4">
+                          <div className="space-y-2">
+                            {history
+                              .slice()
+                              .reverse()
+                              .map((h, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between text-xs bg-[#101522] border border-[#d4af37]/10 rounded-lg px-3 py-2"
+                                >
+                                  <div className="text-gray-300">
+                                    <span className="text-white font-medium">
+                                      {h.userId?.name || h.name || "Unknown user"}
+                                    </span>{" "}
+                                    <span className="text-gray-500">
+                                      ({h.userId?.email || h.email || "no email"})
+                                    </span>{" "}
+                                    <span
+                                      className={
+                                        h.action === "left"
+                                          ? "text-yellow-400"
+                                          : "text-red-400"
+                                      }
+                                    >
+                                      {h.action === "left" ? "left the team" : "was removed"}
+                                    </span>{" "}
+                                    <span className="text-gray-500">
+                                      on{" "}
+                                      {h.at
+                                        ? new Date(h.at).toLocaleString()
+                                        : "—"}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    {h.rejoined ? (
+                                      <span className="text-emerald-400 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10">
+                                        Rejoined this team
+                                      </span>
+                                    ) : h.userId?.isBlocked ? (
+                                      <span className="text-red-400 text-[10px] px-2 py-0.5 rounded-full bg-red-500/10">
+                                        Blocked
+                                      </span>
+                                    ) : (
+                                      <span className="text-amber-400 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10">
+                                        Available to re-add
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {team.eventId?.title || "—"}
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {team.leaderId?.name || "—"}
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {(team.members || []).length}
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {team.domain || "—"}
-                  </td>
-                  <td className="py-3 px-4 capitalize text-gray-400">
-                    {team.status}
-                  </td>
-                  <td className="py-3 px-4">
-                    {team.checkedIn ? (
-                      <span className="text-emerald-400 text-xs">Yes</span>
-                    ) : (
-                      <span className="text-gray-500 text-xs">No</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right whitespace-nowrap">
-                    <button
-                      disabled={busyId === team._id}
-                      onClick={() => handleToggleLock(team)}
-                      className="text-xs text-[#d4af37] hover:underline mr-3 disabled:opacity-50"
-                    >
-                      {team.lockedBySuperAdmin ? "Unlock" : "Lock"}
-                    </button>
-                    <button
-                      disabled={busyId === team._id}
-                      onClick={() => handleDelete(team)}
-                      className="text-xs text-red-400 hover:underline disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         )}
