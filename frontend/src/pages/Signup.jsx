@@ -18,6 +18,21 @@ import {
   AlertCircle
 } from "lucide-react";
 
+// Reusable input wrapper component for consistent styling
+const InputWrapper = ({ icon: Icon, label, children }) => (
+  <div className="relative group">
+    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1 group-focus-within:text-[#d4af37] transition-colors">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#d4af37] transition-colors">
+        <Icon className="w-5 h-5" />
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
 const Signup = () => {
   const navigate = useNavigate();
 
@@ -106,20 +121,6 @@ const Signup = () => {
     }
   };
 
-  // Reusable input wrapper component for consistent styling
-  const InputWrapper = ({ icon: Icon, label, children }) => (
-    <div className="relative group">
-      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1 group-focus-within:text-[#d4af37] transition-colors">
-        {label}
-      </label>
-      <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#d4af37] transition-colors">
-          <Icon className="w-5 h-5" />
-        </div>
-        {children}
-      </div>
-    </div>
-  );
 
   const inputStyles = "w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#101522]/80 border border-white/10 text-white placeholder-gray-600 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 focus:bg-[#101522] transition-all outline-none backdrop-blur-md shadow-inner";
   const selectStyles = `${inputStyles} appearance-none [&>option]:bg-[#101522] [&>option]:text-white`;
