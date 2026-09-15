@@ -52,9 +52,31 @@ export const createTeam = async (req, res) => {
 // GET /api/teams/:id
 export const getTeam = async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id).populate('members', '-passwordHash').populate('leaderId', '-passwordHash').populate('eventId', 'name teamSizeMax registrationDeadline');
+    const team = await Team.findById(req.params.id)
+      .populate('members', '-passwordHash')
+      .populate('leaderId', '-passwordHash')
+      .populate('eventId', 'name teamSizeMax registrationDeadline');
+      
     if (!team) return res.status(404).json({ message: 'Team not found' });
-    res.status(200).json(team);
+
+    // Security check: Only allow actual team members or super_admin to see email and phone
+    const isMember = team.members.some(member => member._id.toString() === req.user._id.toString());
+    const isSuperAdmin = req.user.role === 'super_admin';
+
+    const teamObj = team.toObject();
+
+    if (!isMember && !isSuperAdmin) {
+      teamObj.members = teamObj.members.map(member => {
+        const { email, phone, ...safeMember } = member;
+        return safeMember;
+      });
+      if (teamObj.leaderId) {
+        const { email, phone, ...safeLeader } = teamObj.leaderId;
+        teamObj.leaderId = safeLeader;
+      }
+    }
+
+    res.status(200).json(teamObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -253,7 +275,10 @@ export const getAvailableTeams = async (req, res) => {
       lookingForTeammates: true,
       $expr: { $lt: [{ $size: "$members" }, 4] },
       status: 'forming'
-    }).populate('leaderId', '-passwordHash').populate('members', '-passwordHash').populate('eventId', 'name teamSizeMax');
+    })
+      .populate('leaderId', '-passwordHash -email -phone')
+      .populate('members', '-passwordHash -email -phone')
+      .populate('eventId', 'name teamSizeMax');
     
     res.status(200).json(teams);
   } catch (error) {

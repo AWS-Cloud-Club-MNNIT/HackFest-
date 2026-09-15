@@ -4,7 +4,12 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import BrowseTeammates from "../components/BrowseTeammates";
-import { Users, UserMinus, QrCode, MailPlus, CheckCircle2, XCircle, Eye } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Users, UserMinus, QrCode, MailPlus, CheckCircle2, 
+  XCircle, Eye, Settings, LogOut, Phone, Mail,
+  ShieldAlert, MoreVertical, Globe, UserCheck
+} from "lucide-react";
 import DetailModal from "../components/common/DetailModal";
 import ParticipantDetail from "../components/ParticipantDetail";
 
@@ -185,8 +190,22 @@ export default function MyTeam() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#080b16] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#d4af37] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#05070f] text-white flex flex-col">
+        <DashboardNavbar user={user} />
+        <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10 animate-pulse">
+          <div className="h-40 bg-white/5 rounded-2xl mb-8"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="h-8 w-1/3 bg-white/5 rounded mb-4"></div>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-24 bg-white/5 rounded-xl"></div>
+              ))}
+            </div>
+            <div className="space-y-6">
+               <div className="h-64 bg-white/5 rounded-xl"></div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -194,322 +213,478 @@ export default function MyTeam() {
   // No Team Empty State
   if (!team) {
     return (
-      <div className="min-h-screen bg-[#080b16] text-[#e8d7b5]">
+      <div className="min-h-screen bg-[#05070f] text-white flex flex-col">
         <DashboardNavbar user={user} />
-        <main className="max-w-4xl mx-auto px-6 py-24 text-center flex flex-col items-center">
-          <Users className="w-24 h-24 text-[#d4af37]/40 mb-6" />
-          <h2 className="text-3xl font-bold font-display text-[#d4af37] mb-4">You have no team yet</h2>
-          <p className="text-gray-400 max-w-lg mb-8">
-            You are currently flying solo. Create your own guild or wait for an invitation from a team leader.
-          </p>
-          <Link 
-            to="/team/create" 
-            className="px-8 py-3 bg-[#d4af37] text-black font-bold rounded-lg shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:shadow-[0_0_25px_rgba(212,175,55,0.7)] transition-all"
-          >
-            Create a Team
-          </Link>
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-3xl mx-auto w-full relative">
+           {/* Ambient Glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[#d4af37]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+          
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
+            <Users className="w-24 h-24 text-[#d4af37]/40 mb-8 mx-auto" />
+            <h2 className="text-4xl md:text-5xl font-bold font-harry text-[#f4e8c1] mb-6 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] tracking-wide">
+              Assemble Your Guild
+            </h2>
+            <p className="text-lg text-gray-400 max-w-lg mb-10 leading-relaxed font-serif">
+              You are currently adventuring solo. Create a new team to begin your journey, or join forces with an existing squad.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link 
+                to="/team/create" 
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#d4af37] to-[#e6c65c] text-black font-bold rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all hover:-translate-y-1"
+              >
+                Create a Team
+              </Link>
+              <Link 
+                to="/team/find" 
+                className="w-full sm:w-auto px-8 py-4 bg-[#101522] border border-[#d4af37]/30 text-[#d4af37] font-bold rounded-xl hover:bg-[#d4af37]/10 transition-all hover:-translate-y-1"
+              >
+                Find a Team
+              </Link>
+            </div>
+          </motion.div>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#080b16] text-[#e8d7b5]">
+    <div className="min-h-screen bg-[#05070f] text-white flex flex-col relative overflow-hidden">
+      
+      {/* Background ambient lighting */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#5c3b80]/10 rounded-full blur-[120px] pointer-events-none" />
+      
       <DashboardNavbar user={user} />
       
       {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#101522] border border-[#d4af37]/40 w-full max-w-lg p-6 rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-[#d4af37]">Direct Invite</h3>
-              <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-white">
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-400 mb-6">Search for participants by their name or email to invite them directly.</p>
-            
-            <form onSubmit={handleSearchParticipants} className="flex gap-2 mb-6">
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                required
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-[#05070f] border border-[#d4af37]/30 rounded-lg px-4 py-3 text-white focus:border-[#d4af37] outline-none"
-              />
-              <button
-                type="submit"
-                disabled={searching}
-                className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.5)] transition disabled:opacity-50"
-              >
-                {searching ? "Searching..." : "Search"}
-              </button>
-            </form>
-
-            <div className="max-h-64 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-              {searchResults.length === 0 && !searching && searchQuery && (
-                <p className="text-center text-gray-500 py-4">No available participants found matching your query.</p>
-              )}
-              
-              {searchResults.map(participant => (
-                <div key={participant._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-[#05070f] border border-[#d4af37]/20 rounded-xl gap-3">
-                  <div>
-                    <h4 className="font-bold text-white">{participant.name}</h4>
-                    <p className="text-xs text-gray-400">{participant.email}</p>
-                    <div className="text-[10px] uppercase tracking-wider text-[#d4af37] mt-1">
-                      {participant.college || 'No college'} • {participant.branch || 'No branch'}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={() => {
-                        setSelectedUser({ user: participant, action: 'invite' });
-                        setShowInviteModal(false);
-                      }}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-600 rounded hover:bg-gray-700 transition text-xs font-bold"
-                    >
-                      <Eye className="w-3 h-3" /> View
-                    </button>
-                    <button
-                      onClick={() => handleSendInvite(participant._id)}
-                      disabled={invitingId === participant._id || participant.teamId}
-                      className="flex-1 sm:flex-none px-4 py-1.5 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded hover:bg-[#d4af37]/20 transition disabled:opacity-50 text-xs font-bold"
-                    >
-                      {invitingId === participant._id ? "Inviting..." : "Invite"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Domain Change Modal */}
-      {showDomainModal && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="parchment-card w-full max-w-md p-6 rounded-2xl animate-in fade-in zoom-in duration-200">
-            <h3 className="text-2xl font-bold text-[#d4af37] mb-4 font-display">Change Domain</h3>
-            <p className="text-sm text-gray-400 mb-6">Select a new domain for {team.name}.</p>
-            
-            <form onSubmit={handleChangeDomain}>
-              <div className="space-y-3 mb-6">
-                {event?.domains?.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setNewDomain(d)}
-                    className={`w-full p-4 rounded-xl border text-left transition-all duration-300 ${
-                      newDomain === d
-                        ? "bg-[#d4af37]/20 border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.3)]"
-                        : "bg-[#10182b] border-[#d4af37]/20 hover:border-[#d4af37]/60"
-                    }`}
-                  >
-                    <span className={`block font-bold ${newDomain === d ? "text-[#d4af37]" : "text-[#e8d7b5]"}`}>
-                      {d}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowDomainModal(false)}
-                  className="px-4 py-2 border border-gray-600 rounded-lg text-gray-400 hover:text-white transition"
-                >
-                  Cancel
+      <AnimatePresence>
+        {showInviteModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#101522] border border-[#d4af37]/40 w-full max-w-lg p-6 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <MailPlus className="w-6 h-6 text-[#d4af37]" /> Send Invite
+                </h3>
+                <button onClick={() => setShowInviteModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                  <XCircle className="w-6 h-6" />
                 </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-6">Search for participants by their name or email.</p>
+              
+              <form onSubmit={handleSearchParticipants} className="flex gap-3 mb-6">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  required
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-[#05070f] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d4af37] outline-none transition-colors"
+                />
                 <button
                   type="submit"
-                  disabled={changingDomain || !newDomain || newDomain === team.domain}
-                  className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.5)] transition disabled:opacity-50"
+                  disabled={searching}
+                  className="px-6 py-3 bg-[#d4af37] text-black font-bold rounded-xl hover:bg-[#e5c158] transition-colors disabled:opacity-50"
                 >
-                  {changingDomain ? "Saving..." : "Save Domain"}
+                  {searching ? "Searching..." : "Search"}
                 </button>
+              </form>
+
+              <div className="max-h-64 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                {searchResults.length === 0 && !searching && searchQuery && (
+                  <p className="text-center text-gray-500 py-8">No available participants found.</p>
+                )}
+                
+                {searchResults.map(participant => (
+                  <div key={participant._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-[#05070f] border border-white/5 rounded-xl gap-3 hover:border-[#d4af37]/30 transition-colors">
+                    <div>
+                      <h4 className="font-bold text-white">{participant.name}</h4>
+                      <p className="text-xs text-gray-500">{participant.email}</p>
+                      <div className="text-[10px] uppercase tracking-wider text-[#d4af37] mt-1">
+                        {participant.college || 'No college'}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                      <button
+                        onClick={() => {
+                          setSelectedUser({ user: participant, action: 'invite' });
+                          setShowInviteModal(false);
+                        }}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-2 bg-white/5 text-gray-300 rounded-lg hover:bg-white/10 transition-colors text-xs font-bold"
+                      >
+                        <Eye className="w-3 h-3" /> View
+                      </button>
+                      <button
+                        onClick={() => handleSendInvite(participant._id)}
+                        disabled={invitingId === participant._id || participant.teamId}
+                        className="flex-1 sm:flex-none px-4 py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded-lg hover:bg-[#d4af37]/20 transition-colors disabled:opacity-50 text-xs font-bold"
+                      >
+                        {invitingId === participant._id ? "Inviting..." : "Invite"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        
-        {/* Header & Status */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">{team.name}</h1>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider border uppercase ${
-                isComplete 
-                  ? "bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(74,222,128,0.2)]" 
-                  : "bg-blue-900/40 text-blue-400 border-blue-500/50"
-              }`}>
-                {team.status}
-              </span>
-            </div>
-            <p className="text-gray-400">
-              Domain: <span className="text-[#e8d7b5] font-semibold">{team.domain}</span> • 
-              Members: <span className="text-[#e8d7b5] font-semibold">{team.members.length} / {event?.teamSizeMax || 4}</span>
-            </p>
-          </div>
-
-          {isComplete && (
-            <Link 
-              to="/team/qr-pass"
-              className="group relative inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e5c158] px-6 py-3 font-bold text-[#05070f] shadow-[0_0_20px_rgba(212,175,55,0.4)] transition hover:scale-105 hover:shadow-[0_0_30px_rgba(212,175,55,0.7)]"
+      {/* Domain Change Modal */}
+      <AnimatePresence>
+        {showDomainModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#101522] border border-[#d4af37]/40 w-full max-w-md p-6 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
             >
-              <QrCode className="w-5 h-5" />
-              <span>View QR Pass</span>
-            </Link>
-          )}
+              <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <Globe className="w-6 h-6 text-[#d4af37]" /> Change Domain
+              </h3>
+              <p className="text-sm text-gray-400 mb-6">Select a new domain for {team.name}.</p>
+              
+              <form onSubmit={handleChangeDomain}>
+                <div className="space-y-3 mb-6">
+                  {event?.domains?.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setNewDomain(d)}
+                      className={`w-full p-4 rounded-xl border text-left transition-all duration-300 ${
+                        newDomain === d
+                          ? "bg-[#d4af37]/10 border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                          : "bg-[#05070f] border-white/5 hover:border-white/20"
+                      }`}
+                    >
+                      <span className={`block font-bold ${newDomain === d ? "text-[#d4af37]" : "text-white"}`}>
+                        {d}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDomainModal(false)}
+                    className="px-5 py-2.5 border border-white/10 rounded-xl text-gray-400 hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={changingDomain || !newDomain || newDomain === team.domain}
+                    className="px-6 py-2.5 bg-[#d4af37] text-black font-bold rounded-xl hover:bg-[#e5c158] transition-colors disabled:opacity-50"
+                  >
+                    {changingDomain ? "Saving..." : "Save Domain"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 relative z-10 space-y-8">
+        
+        {/* COMMAND CENTER HERO */}
+        <div className="bg-gradient-to-br from-[#101522]/90 to-[#05070f]/90 border border-white/5 rounded-3xl p-8 lg:p-12 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
+           {/* Hero background FX */}
+           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#d4af37]/5 to-transparent pointer-events-none" />
+           <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#d4af37]/10 blur-[100px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-150" />
+
+           <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
+              <div className="space-y-4 max-w-2xl">
+                 <div className="flex items-center gap-3">
+                   <span className="font-display px-3 py-1 text-[10px] tracking-widest font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30">
+                     Command Center
+                   </span>
+                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider border uppercase flex items-center gap-1 ${
+                      isComplete 
+                        ? "bg-green-900/20 text-green-400 border-green-500/30" 
+                        : "bg-blue-900/20 text-blue-400 border-blue-500/30"
+                    }`}>
+                      {isComplete ? <CheckCircle2 className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                      {team.status}
+                    </span>
+                 </div>
+                 
+                 <h1 className="font-harry text-5xl md:text-7xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                   {team.name}
+                 </h1>
+                 
+                 <div className="flex flex-wrap gap-6 text-sm text-gray-400 font-serif">
+                   <div className="flex items-center gap-2">
+                     <Globe className="w-4 h-4 text-[#d4af37]" />
+                     <span>Domain: <strong className="text-white font-sans">{team.domain}</strong></span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <Users className="w-4 h-4 text-[#d4af37]" />
+                     <span>Roster: <strong className="text-white font-sans">{team.members.length} / {event?.teamSizeMax || 4}</strong></span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-[#d4af37]" />
+                      <span>Role: <strong className="text-white font-sans">{isLeader ? "Team Leader" : "Member"}</strong></span>
+                   </div>
+                 </div>
+              </div>
+
+              {/* Top Level Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+                 {isComplete && (
+                    <Link 
+                      to="/team/qr-pass"
+                      className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6c65c] px-6 py-3.5 font-bold text-black shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] w-full sm:w-auto"
+                    >
+                      <QrCode className="w-5 h-5" />
+                      <span>View QR Pass</span>
+                    </Link>
+                  )}
+                  {canEdit && !isComplete && (
+                    <button 
+                      onClick={() => setShowInviteModal(true)}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-black px-6 py-3.5 font-bold shadow-lg transition-all hover:bg-gray-200 w-full sm:w-auto"
+                    >
+                      <MailPlus className="w-5 h-5" />
+                      <span>Invite Member</span>
+                    </button>
+                  )}
+              </div>
+           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Members List */}
-          <div className="lg:col-span-2 space-y-4">
-            <h3 className="text-xl font-bold text-[#d4af37] font-display border-b border-[#d4af37]/20 pb-2">Roster</h3>
+          {/* MEMBERS ROSTER */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+               <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                 <Users className="w-5 h-5 text-[#d4af37]" /> Team Roster
+               </h3>
+               <span className="text-sm text-gray-500">{team.members.length} members</span>
+            </div>
             
-            {team.members.map((member) => (
-              <div key={member._id} className="parchment-card p-5 rounded-xl flex justify-between items-center transition-all hover:border-[#d4af37]/50 group cursor-pointer" onClick={() => setSelectedUser({ user: member, action: 'view' })}>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#10182b] border border-[#d4af37]/40 flex items-center justify-center font-bold text-[#d4af37]">
-                    {member.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#e8d7b5] flex items-center gap-2">
-                      {member.name}
-                      {member._id === actualLeaderId && (
-                        <span className="text-[10px] bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/40 px-2 py-0.5 rounded-sm tracking-widest uppercase">Leader</span>
-                      )}
-                    </h4>
-                    <p className="text-xs text-gray-500">{member.college || "No college"} • {member.branch || "No branch"}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition px-2">View Profile</span>
-                  {canEdit && member._id !== user._id && (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveMember(member._id);
-                      }}
-                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition"
-                      title="Remove from team"
-                    >
-                      <UserMinus className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+            <div className="space-y-4">
+              {team.members.map((member, index) => {
+                 const isMemberLeader = member._id === actualLeaderId;
+                 return (
+                   <motion.div 
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ duration: 0.3, delay: index * 0.1 }}
+                     key={member._id} 
+                     className="bg-[#101522]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-5 sm:p-6 transition-all hover:border-[#d4af37]/30 hover:bg-[#101522] group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg"
+                   >
+                     {/* Identity Section */}
+                     <div 
+                        className="flex items-center gap-4 flex-1 cursor-pointer" 
+                        onClick={() => setSelectedUser({ user: member, action: 'view' })}
+                     >
+                       <div className="relative">
+                          <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl ${isMemberLeader ? 'bg-gradient-to-br from-[#d4af37] to-[#8a7224] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-[#05070f] border border-white/10 text-white'}`}>
+                            {member.name.charAt(0).toUpperCase()}
+                          </div>
+                          {isMemberLeader && (
+                             <div className="absolute -bottom-1 -right-1 bg-[#101522] rounded-full p-0.5">
+                                <Settings className="w-4 h-4 text-[#d4af37]" />
+                             </div>
+                          )}
+                       </div>
+                       
+                       <div>
+                         <h4 className="font-bold text-lg text-white flex items-center gap-2">
+                           {member.name}
+                           {isMemberLeader && (
+                             <span className="text-[9px] bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 px-2 py-0.5 rounded uppercase tracking-widest font-bold">
+                               Leader
+                             </span>
+                           )}
+                         </h4>
+                         <p className="text-sm text-gray-400 mt-0.5">
+                           {member.college || "No college"} {member.branch && `• ${member.branch}`}
+                         </p>
+                       </div>
+                     </div>
+                     
+                     {/* Actions / Contact Section */}
+                     <div className="flex items-center gap-3 w-full sm:w-auto border-t border-white/5 sm:border-0 pt-4 sm:pt-0">
+                       
+                       {/* Contact Info (Only populated if backend allows it) */}
+                       {member.email ? (
+                          <div className="flex gap-2">
+                             <a 
+                               href={`mailto:${member.email}`} 
+                               onClick={e => e.stopPropagation()}
+                               className="p-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-[#d4af37]/20 hover:text-[#d4af37] transition-colors"
+                               title="Send Email"
+                             >
+                                <Mail className="w-4 h-4" />
+                             </a>
+                             {member.phone && (
+                               <a 
+                                 href={`tel:${member.phone}`} 
+                                 onClick={e => e.stopPropagation()}
+                                 className="p-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-[#d4af37]/20 hover:text-[#d4af37] transition-colors"
+                                 title="Call Phone"
+                               >
+                                  <Phone className="w-4 h-4" />
+                               </a>
+                             )}
+                          </div>
+                       ) : (
+                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/5 text-[10px] uppercase text-gray-500 font-bold tracking-widest">
+                             Contact Hidden
+                          </div>
+                       )}
+
+                       {/* Management Controls */}
+                       {canEdit && member._id !== user._id && (
+                         <div className="relative group/menu ml-auto sm:ml-2">
+                           <button className="p-2 text-gray-400 hover:text-white transition-colors">
+                             <MoreVertical className="w-5 h-5" />
+                           </button>
+                           {/* Context Menu Dropdown */}
+                           <div className="absolute right-0 top-full mt-2 w-48 bg-[#05070f] border border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-20 overflow-hidden translate-y-2 group-hover/menu:translate-y-0">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleRemoveMember(member._id); }}
+                                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors"
+                              >
+                                <UserMinus className="w-4 h-4" /> Remove Member
+                              </button>
+                           </div>
+                         </div>
+                       )}
+                     </div>
+                   </motion.div>
+                 );
+              })}
+            </div>
           </div>
 
-          {/* Controls Sidebar */}
+          {/* SIDEBAR: TEAM ACTIVITY & SETTINGS */}
           <div className="space-y-6">
             
-            {/* Action Panel */}
-            <div className="bg-[#101522] border border-[#d4af37]/20 rounded-xl p-6">
-              <h3 className="font-bold text-[#d4af37] mb-4">Command Center</h3>
-              
-              <div className="space-y-3">
-                {canEdit && (
-                  <button 
-                    onClick={() => {
-                      setNewDomain(team.domain);
-                      setShowDomainModal(true);
-                    }}
-                    className="w-full text-[#e8d7b5] border border-gray-600 bg-gray-800/50 py-2.5 rounded-lg hover:bg-gray-800 transition"
-                  >
-                    Change Domain
-                  </button>
-                )}
+            {/* Team Settings Panel (Leader only) */}
+            {(isLeader || !isLeader) && (
+               <div className="bg-[#101522]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
+                  <h3 className="font-bold text-white mb-5 flex items-center gap-2 border-b border-white/5 pb-3">
+                     <Settings className="w-5 h-5 text-gray-400" /> Options
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {canEdit && (
+                      <button 
+                        onClick={() => {
+                          setNewDomain(team.domain);
+                          setShowDomainModal(true);
+                        }}
+                        className="w-full flex items-center justify-between text-gray-300 bg-white/5 border border-white/5 py-3 px-4 rounded-xl hover:bg-white/10 transition-colors"
+                      >
+                        <span className="font-medium text-sm">Change Domain</span>
+                        <Globe className="w-4 h-4 text-gray-500" />
+                      </button>
+                    )}
 
-                {canEdit && (
-                  <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded-lg border border-gray-600">
-                    <span className="text-sm text-gray-300">Looking for Teammates</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={team.lookingForTeammates || false}
-                        onChange={handleToggleLookingForTeammates}
-                        disabled={isComplete}
-                      />
-                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37]"></div>
-                    </label>
+                    {canEdit && (
+                      <div className="flex items-center justify-between bg-white/5 border border-white/5 p-4 rounded-xl">
+                        <div>
+                           <span className="block text-sm font-medium text-gray-300">Recruiting</span>
+                           <span className="block text-xs text-gray-500 mt-0.5">Show team in discovery</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={team.lookingForTeammates || false}
+                            onChange={handleToggleLookingForTeammates}
+                            disabled={isComplete}
+                          />
+                          <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37] peer-checked:after:bg-black"></div>
+                        </label>
+                      </div>
+                    )}
+                    
+                    {!isLeader && (
+                      <button 
+                        onClick={handleLeaveTeam}
+                        disabled={deadlinePassed || team.lockedBySuperAdmin}
+                        className="w-full flex items-center justify-between text-red-400 bg-red-500/5 border border-red-500/20 py-3 px-4 rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                      >
+                        <span className="font-medium text-sm">Leave Team</span>
+                        <LogOut className="w-4 h-4" />
+                      </button>
+                    )}
+                    
+                    {deadlinePassed && (
+                      <div className="text-xs text-red-400/80 text-center mt-4 border border-red-900/30 bg-red-900/10 p-3 rounded-xl flex items-center justify-center gap-2">
+                        <ShieldAlert className="w-4 h-4" />
+                        Registration Deadline Passed
+                      </div>
+                    )}
                   </div>
-                )}
-                {canEdit && !isComplete && (
-                  <button 
-                    onClick={() => setShowInviteModal(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-[#d4af37]/10 border border-[#d4af37]/40 text-[#d4af37] py-2.5 rounded-lg hover:bg-[#d4af37]/20 transition"
-                  >
-                    <MailPlus className="w-4 h-4" />
-                    <span>Invite Teammate</span>
-                  </button>
-                )}
-                
-                {!isLeader && (
-                  <button 
-                    onClick={handleLeaveTeam}
-                    disabled={deadlinePassed || team.lockedBySuperAdmin}
-                    className="w-full text-red-400 border border-red-900/50 bg-red-900/10 py-2.5 rounded-lg hover:bg-red-900/30 transition disabled:opacity-50"
-                  >
-                    Leave Team
-                  </button>
-                )}
-                
-                {deadlinePassed && (
-                  <p className="text-xs text-red-400/80 text-center mt-4 border border-red-900/30 bg-red-900/10 p-2 rounded">
-                    Deadline passed. Team is locked.
-                  </p>
-                )}
-              </div>
-            </div>
+               </div>
+            )}
 
-            {/* Incoming Requests (Leader Only) */}
+            {/* Pending Requests / Activity (Leader Only) */}
             {isLeader && (
-              <div className="bg-[#101522] border border-[#d4af37]/20 rounded-xl p-6">
-                <h3 className="font-bold text-[#d4af37] mb-4">Join Requests</h3>
+              <div className="bg-[#101522]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
+                <h3 className="font-bold text-white mb-5 flex items-center gap-2 border-b border-white/5 pb-3">
+                   <UserCheck className="w-5 h-5 text-gray-400" /> Pending Requests
+                </h3>
                 
                 {joinRequests.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic text-center py-4">No pending requests</p>
+                  <div className="text-center py-6 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                     <p className="text-sm text-gray-500">No pending requests</p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {joinRequests.map(req => (
-                      <div key={req._id} className="p-3 border border-[#d4af37]/20 rounded-lg bg-[#05070f] flex flex-col gap-2">
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                        key={req._id} 
+                        className="p-4 border border-[#d4af37]/20 rounded-xl bg-[#05070f] flex flex-col gap-3 shadow-md"
+                      >
                         <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-sm font-semibold text-[#e8d7b5]">{req.fromUserId.name}</p>
-                            <p className="text-[10px] text-gray-500">{req.fromUserId.skills?.slice(0,2).join(', ') || 'No skills listed'}</p>
+                          <div className="flex items-center gap-3">
+                             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white">
+                                {req.fromUserId.name.charAt(0)}
+                             </div>
+                             <div>
+                               <p className="text-sm font-bold text-white">{req.fromUserId.name}</p>
+                               <p className="text-[10px] text-gray-400">{req.fromUserId.skills?.slice(0,2).join(', ') || 'No skills listed'}</p>
+                             </div>
                           </div>
                           <button
                             onClick={() => setSelectedUser({ user: req.fromUserId, action: 'request', reqId: req._id })}
-                            className="text-xs flex items-center gap-1 bg-gray-800 text-gray-300 px-2 py-1 rounded hover:bg-gray-700 transition"
+                            className="text-xs flex items-center gap-1 bg-white/10 text-white px-2 py-1 rounded-md hover:bg-white/20 transition-colors"
                           >
                             <Eye className="w-3 h-3" /> View
                           </button>
                         </div>
                         
-                        <div className="flex gap-2 mt-1">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleRejectRequest(req._id)}
+                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                          >
+                            Reject
+                          </button>
                           <button 
                             onClick={() => handleAcceptRequest(req._id)}
                             disabled={!canEdit || isComplete}
-                            className="flex-1 flex items-center justify-center gap-1 bg-green-900/30 text-green-400 py-1.5 rounded text-xs border border-green-900 hover:bg-green-900/50 transition disabled:opacity-30"
+                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/30 hover:bg-[#d4af37] hover:text-black transition-colors disabled:opacity-30"
                           >
-                            <CheckCircle2 className="w-3 h-3" /> Accept
-                          </button>
-                          <button 
-                            onClick={() => handleRejectRequest(req._id)}
-                            className="flex-1 flex items-center justify-center gap-1 bg-red-900/30 text-red-400 py-1.5 rounded text-xs border border-red-900 hover:bg-red-900/50 transition"
-                          >
-                            <XCircle className="w-3 h-3" /> Reject
+                            Accept
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}
@@ -521,8 +696,11 @@ export default function MyTeam() {
 
         {/* Browse Participants Section (Leader Only) */}
         {isLeader && !isComplete && (
-          <div className="mt-12 border-t border-[#d4af37]/20 pt-8">
-            <BrowseTeammates />
+          <div className="mt-16 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent h-px top-0" />
+            <div className="pt-10">
+               <BrowseTeammates />
+            </div>
           </div>
         )}
       </main>
@@ -547,27 +725,27 @@ export default function MyTeam() {
                 {selectedUser.action === 'invite' && (
                   <button
                     onClick={() => handleSendInvite(selectedUser.user._id)}
-                    className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                    className="w-full px-6 py-3 bg-[#d4af37] text-black font-bold rounded-xl hover:bg-[#e5c158] transition-colors shadow-lg"
                   >
                     Invite to Team
                   </button>
                 )}
                 {selectedUser.action === 'request' && (
-                  <>
+                  <div className="flex gap-3 w-full">
                     <button
                       onClick={() => handleRejectRequest(selectedUser.reqId)}
-                      className="px-6 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-lg transition"
+                      className="flex-1 px-4 py-3 border border-red-500/30 text-red-400 hover:bg-red-500/10 font-bold rounded-xl transition-colors"
                     >
-                      Reject Request
+                      Reject
                     </button>
                     <button
                       onClick={() => handleAcceptRequest(selectedUser.reqId)}
                       disabled={!canEdit || isComplete}
-                      className="px-6 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-bold rounded-lg transition disabled:opacity-50"
+                      className="flex-1 px-4 py-3 bg-[#d4af37] text-black hover:bg-[#e5c158] font-bold rounded-xl transition-colors disabled:opacity-50"
                     >
-                      Accept Request
+                      Accept
                     </button>
-                  </>
+                  </div>
                 )}
               </>
             }
