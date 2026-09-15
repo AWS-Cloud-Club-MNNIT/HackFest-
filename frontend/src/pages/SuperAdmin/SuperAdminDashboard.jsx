@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 import API from "../../services/api";
 import UsersTab from "./tabs/UsersTab";
@@ -110,6 +111,7 @@ function StatusBadge({ status }) {
 
 function SuperAdminDashboard() {
   const [activeMenu, setActiveMenu] = useState("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [dashboard, setDashboard] = useState(null);
   const [events, setEvents] = useState([]);
@@ -263,8 +265,14 @@ function SuperAdminDashboard() {
   // =========================================================
 
   const renderContent = () => {
+    // Hide mobile menu on tab navigation
+    const handleNavigate = (tab) => {
+      setActiveMenu(tab);
+      setMobileMenuOpen(false);
+    };
+
     if (activeMenu === "overview") {
-      return <OverviewTab onNavigateTab={setActiveMenu} />;
+      return <OverviewTab onNavigateTab={handleNavigate} />;
     }
 
     if (activeMenu === "events") {
@@ -364,7 +372,7 @@ function SuperAdminDashboard() {
 
             <div
               className="
-                flex h-10 w-10 items-center justify-center
+                hidden md:flex h-10 w-10 items-center justify-center
                 rounded-full
                 border border-[#c9a646]/30
                 bg-[#171d31]
@@ -373,6 +381,14 @@ function SuperAdminDashboard() {
             >
               ♙
             </div>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg border border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/10 transition-all ml-2"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
       </header>
@@ -381,17 +397,32 @@ function SuperAdminDashboard() {
           SIDEBAR
       ===================================================== */}
 
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden top-[72px]"
+          />
+        )}
+      </AnimatePresence>
+
       <aside
-        className="
+        className={`
           fixed bottom-0 left-0 top-[72px] z-40
-          hidden w-[245px]
+          w-[245px]
           border-r border-[#d4af37]/20
-          bg-[#10182b]/80
+          bg-[#10182b]/95
           backdrop-blur-xl
-          lg:block
-        "
+          transition-transform duration-300
+          lg:translate-x-0
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
       >
-        <div className="flex h-full flex-col px-4 py-6">
+        <div className="flex h-full flex-col px-4 py-6 overflow-y-auto no-scrollbar">
           {/* Brand */}
           <div className="mb-8 px-3">
             <p className="font-harry text-3xl font-bold tracking-widest text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]">
@@ -415,7 +446,10 @@ function SuperAdminDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveMenu(item.id)}
+                  onClick={() => {
+                    setActiveMenu(item.id);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`
                     group relative flex w-full items-center gap-3
                     rounded-xl px-4 py-3
@@ -466,7 +500,10 @@ function SuperAdminDashboard() {
           {/* Bottom navigation */}
           <div className="space-y-2">
             <button
-              onClick={() => setActiveMenu("settings")}
+              onClick={() => {
+                setActiveMenu("settings");
+                setMobileMenuOpen(false);
+              }}
               className="
                 flex w-full items-center gap-3
                 rounded-xl px-4 py-3

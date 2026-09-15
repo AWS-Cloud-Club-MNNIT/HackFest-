@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Check, Trash2, ShieldAlert } from "lucide-react";
+import { Bell, Check, Trash2, ShieldAlert, Menu, X } from "lucide-react";
 import API from "../services/api";
 import { io } from "socket.io-client";
 import { useAuthStore } from "../store/useAuthStore";
@@ -9,6 +9,7 @@ import { useNotificationStore } from "../store/useNotificationStore";
 const DashboardNavbar = ({ user: propUser }) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Global states
@@ -33,8 +34,17 @@ const DashboardNavbar = ({ user: propUser }) => {
         setShowNotifications(false);
       }
     };
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -199,14 +209,56 @@ const DashboardNavbar = ({ user: propUser }) => {
 
           <button
             onClick={handleLogout}
-            className="group relative cursor-pointer inline-flex items-center justify-center overflow-hidden rounded-full border border-[#d4af37]/60 bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] px-5 py-1.5 text-xs font-bold tracking-wider text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.15)] transition duration-300 hover:border-[#f4e8c1] hover:text-[#f4e8c1] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:scale-[1.02]"
+            className="group relative cursor-pointer hidden md:inline-flex items-center justify-center overflow-hidden rounded-full border border-[#d4af37]/60 bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] px-5 py-1.5 text-xs font-bold tracking-wider text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.15)] transition duration-300 hover:border-[#f4e8c1] hover:text-[#f4e8c1] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:scale-[1.02]"
           >
             <span className="relative z-10 flex items-center gap-1.5">
               Logout
             </span>
           </button>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg border border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/10 transition-all"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-[73px] left-0 right-0 bg-[#080b16]/95 backdrop-blur-xl border-b border-[#d4af37]/30 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-40 p-5 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
+          <Link onClick={() => setMobileMenuOpen(false)} to="/dashboard" className="text-sm font-bold tracking-wider text-[#e8d7b5] border-l-2 border-[#d4af37] pl-3 py-1">
+            Dashboard
+          </Link>
+          {user?.teamId ? (
+            <Link onClick={() => setMobileMenuOpen(false)} to="/team/my-team" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+              My Team
+            </Link>
+          ) : (
+            <>
+              <Link onClick={() => setMobileMenuOpen(false)} to="/team/create" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+                Create Team
+              </Link>
+              <Link onClick={() => setMobileMenuOpen(false)} to="/team/find" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+                Find Team
+              </Link>
+            </>
+          )}
+          <div className="border-t border-[#d4af37]/20 my-2 pt-4">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleLogout();
+              }}
+              className="w-full text-center py-2 rounded-md border border-[#d4af37]/40 bg-red-500/10 text-red-400 font-bold tracking-wider text-sm hover:bg-red-500/20 transition-all"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
