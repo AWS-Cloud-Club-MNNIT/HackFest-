@@ -116,6 +116,7 @@ export const acceptJoinRequest = async (req, res) => {
 
     if (team.members.length >= team.eventId.teamSizeMax) {
       team.status = 'complete';
+      team.lookingForTeammates = false;
       if (!team.qrToken) {
         team.qrToken = crypto.randomBytes(20).toString('hex');
       }

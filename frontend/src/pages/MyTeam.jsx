@@ -248,19 +248,20 @@ export default function MyTeam() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05070f] text-white flex flex-col">
+      <div className="min-h-screen bg-[#080b16] text-[#e8d7b5] flex flex-col relative overflow-hidden">
+        <div className="cinematic-bg-overlay z-0" />
         <DashboardNavbar user={user} />
-        <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10 animate-pulse">
-          <div className="h-40 bg-white/5 rounded-2xl mb-8"></div>
+        <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10 animate-pulse relative z-10">
+          <div className="h-40 bg-[#d4af37]/5 rounded-3xl mb-8 border border-[#d4af37]/10"></div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              <div className="h-8 w-1/3 bg-white/5 rounded mb-4"></div>
+              <div className="h-8 w-1/3 bg-[#d4af37]/10 rounded mb-4"></div>
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-24 bg-white/5 rounded-xl"></div>
+                <div key={i} className="h-24 bg-[#d4af37]/5 rounded-2xl border border-[#d4af37]/10"></div>
               ))}
             </div>
             <div className="space-y-6">
-               <div className="h-64 bg-white/5 rounded-xl"></div>
+               <div className="h-64 bg-[#d4af37]/5 rounded-2xl border border-[#d4af37]/10"></div>
             </div>
           </div>
         </main>
@@ -271,30 +272,32 @@ export default function MyTeam() {
   // No Team Empty State
   if (!team) {
     return (
-      <div className="min-h-screen bg-[#05070f] text-white flex flex-col">
+      <div className="min-h-screen bg-[#080b16] text-[#e8d7b5] flex flex-col relative overflow-hidden">
+        <div className="cinematic-bg-overlay z-0" />
+        <div className="absolute inset-0 bg-hogwarts-grid opacity-20 pointer-events-none z-0" />
         <DashboardNavbar user={user} />
-        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-3xl mx-auto w-full relative">
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-3xl mx-auto w-full relative z-10 animate-magic-reveal">
            {/* Ambient Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[#d4af37]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
           
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
-            <Users className="w-24 h-24 text-[#d4af37]/40 mb-8 mx-auto" />
-            <h2 className="text-4xl md:text-5xl font-bold font-harry text-[#f4e8c1] mb-6 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] tracking-wide">
+            <Users className="w-24 h-24 text-[#d4af37] mx-auto mb-8 drop-shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+            <h2 className="text-5xl md:text-6xl font-bold font-harry text-[#f4e8c1] mb-6 drop-shadow-[0_4px_10px_rgba(212,175,55,0.2)] tracking-wide">
               Assemble Your Guild
             </h2>
-            <p className="text-lg text-gray-400 max-w-lg mb-10 leading-relaxed font-serif">
+            <p className="text-lg text-[#e8d7b5]/70 max-w-lg mb-10 leading-relaxed font-serif">
               You are currently adventuring solo. Create a new team to begin your journey, or join forces with an existing squad.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link 
                 to="/team/create" 
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#d4af37] to-[#e6c65c] text-black font-bold rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all hover:-translate-y-1"
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] text-[#d4af37] border border-[#d4af37]/50 font-bold rounded-xl hover:text-[#f4e8c1] hover:border-[#f4e8c1] transition-all shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:-translate-y-1"
               >
                 Create a Team
               </Link>
               <Link 
                 to="/team/find" 
-                className="w-full sm:w-auto px-8 py-4 bg-[#101522] border border-[#d4af37]/30 text-[#d4af37] font-bold rounded-xl hover:bg-[#d4af37]/10 transition-all hover:-translate-y-1"
+                className="w-full sm:w-auto px-8 py-4 bg-[#080b16]/60 border border-[#d4af37]/30 text-[#d4af37] font-bold rounded-xl hover:bg-[#d4af37]/10 transition-all hover:-translate-y-1"
               >
                 Find a Team
               </Link>
@@ -306,11 +309,11 @@ export default function MyTeam() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05070f] text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#080b16] text-[#e8d7b5] flex flex-col relative overflow-hidden">
       
       {/* Background ambient lighting */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#5c3b80]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#5c3b80]/10 rounded-full blur-[120px] pointer-events-none z-0" />
       
       <DashboardNavbar user={user} />
       
@@ -323,17 +326,17 @@ export default function MyTeam() {
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-[#101522] border border-[#d4af37]/40 w-full max-w-lg p-6 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
+              className="bg-[#080b16] border border-[#d4af37]/40 w-full max-w-lg p-6 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
             >
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <h3 className="text-2xl font-bold text-[#e8d7b5] flex items-center gap-2">
                   <MailPlus className="w-6 h-6 text-[#d4af37]" /> Send Invite
                 </h3>
-                <button onClick={() => setShowInviteModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                <button onClick={() => setShowInviteModal(false)} className="text-gray-500 hover:text-[#d4af37] transition-colors">
                   <XCircle className="w-6 h-6" />
                 </button>
               </div>
-              <p className="text-sm text-gray-400 mb-6">Search for participants by their name or email.</p>
+              <p className="text-sm text-[#e8d7b5]/60 mb-6 font-serif">Search for participants by their name or email.</p>
               
               <form onSubmit={handleSearchParticipants} className="flex gap-3 mb-6">
                 <input
@@ -342,7 +345,7 @@ export default function MyTeam() {
                   required
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-[#05070f] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d4af37] outline-none transition-colors"
+                  className="flex-1 bg-[#10182b] border border-[#d4af37]/20 rounded-xl px-4 py-3 text-[#e8d7b5] focus:border-[#d4af37] magic-input-focus outline-none transition-colors shadow-[inset_0_2px_10px_rgba(0,0,0,0.4)]"
                 />
                 <button
                   type="submit"
@@ -359,11 +362,11 @@ export default function MyTeam() {
                 )}
                 
                 {searchResults.map(participant => (
-                  <div key={participant._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-[#05070f] border border-white/5 rounded-xl gap-3 hover:border-[#d4af37]/30 transition-colors">
+                  <div key={participant._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-[#10182b]/80 border border-[#d4af37]/10 rounded-xl gap-3 hover:border-[#d4af37]/30 transition-colors parchment-card">
                     <div>
-                      <h4 className="font-bold text-white">{participant.name}</h4>
-                      <p className="text-xs text-gray-500">{participant.email}</p>
-                      <div className="text-[10px] uppercase tracking-wider text-[#d4af37] mt-1">
+                      <h4 className="font-bold text-[#e8d7b5]">{participant.name}</h4>
+                      <p className="text-xs text-[#e8d7b5]/60 font-serif">{participant.email}</p>
+                      <div className="text-[10px] uppercase tracking-wider text-[#d4af37] mt-1 font-bold">
                         {participant.college || 'No college'}
                       </div>
                     </div>
@@ -402,12 +405,12 @@ export default function MyTeam() {
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-[#101522] border border-[#d4af37]/40 w-full max-w-md p-6 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
+              className="bg-[#080b16] border border-[#d4af37]/40 w-full max-w-md p-6 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
             >
-              <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-[#e8d7b5] mb-2 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-[#d4af37]" /> Change Domain
               </h3>
-              <p className="text-sm text-gray-400 mb-6">Select a new domain for {team.name}.</p>
+              <p className="text-sm text-[#e8d7b5]/60 mb-6 font-serif">Select a new domain for {team.name}.</p>
               
               <form onSubmit={handleChangeDomain}>
                 <div className="space-y-3 mb-6">
@@ -419,10 +422,10 @@ export default function MyTeam() {
                       className={`w-full p-4 rounded-xl border text-left transition-all duration-300 ${
                         newDomain === d
                           ? "bg-[#d4af37]/10 border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                          : "bg-[#05070f] border-white/5 hover:border-white/20"
+                          : "bg-[#10182b] border-[#d4af37]/20 hover:border-[#d4af37]/40"
                       }`}
                     >
-                      <span className={`block font-bold ${newDomain === d ? "text-[#d4af37]" : "text-white"}`}>
+                      <span className={`block font-bold ${newDomain === d ? "text-[#d4af37]" : "text-[#e8d7b5]"}`}>
                         {d}
                       </span>
                     </button>
@@ -432,7 +435,7 @@ export default function MyTeam() {
                   <button
                     type="button"
                     onClick={() => setShowDomainModal(false)}
-                    className="px-5 py-2.5 border border-white/10 rounded-xl text-gray-400 hover:bg-white/5 transition-colors"
+                    className="px-5 py-2.5 border border-[#d4af37]/20 rounded-xl text-[#e8d7b5]/60 hover:bg-[#d4af37]/10 transition-colors"
                   >
                     Cancel
                   </button>
@@ -450,13 +453,13 @@ export default function MyTeam() {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 relative z-10 space-y-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 relative z-10 space-y-8 animate-magic-reveal">
         
         {/* COMMAND CENTER HERO */}
-        <div className="bg-gradient-to-br from-[#101522]/90 to-[#05070f]/90 border border-white/5 rounded-3xl p-8 lg:p-12 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
+        <div className="bg-[#10182b]/80 border border-[#d4af37]/30 rounded-3xl p-8 lg:p-12 backdrop-blur-xl shadow-[0_0_30px_rgba(212,175,55,0.1)] relative overflow-hidden group parchment-card">
            {/* Hero background FX */}
-           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#d4af37]/5 to-transparent pointer-events-none" />
-           <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#d4af37]/10 blur-[100px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-150" />
+           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#d4af37]/10 to-transparent pointer-events-none" />
+           <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#d4af37]/20 blur-[100px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-150" />
 
            <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
               <div className="space-y-4 max-w-2xl">
@@ -478,18 +481,18 @@ export default function MyTeam() {
                    {team.name}
                  </h1>
                  
-                 <div className="flex flex-wrap gap-6 text-sm text-gray-400 font-serif">
+                 <div className="flex flex-wrap gap-6 text-sm text-[#e8d7b5]/80 font-serif">
                    <div className="flex items-center gap-2">
                      <Globe className="w-4 h-4 text-[#d4af37]" />
-                     <span>Domain: <strong className="text-white font-sans">{team.domain}</strong></span>
+                     <span>Domain: <strong className="text-[#d4af37] font-sans">{team.domain}</strong></span>
                    </div>
                    <div className="flex items-center gap-2">
                      <Users className="w-4 h-4 text-[#d4af37]" />
-                     <span>Roster: <strong className="text-white font-sans">{team.members.length} / {event?.teamSizeMax || 4}</strong></span>
+                     <span>Roster: <strong className="text-[#d4af37] font-sans">{team.members.length} / {event?.teamSizeMax || 4}</strong></span>
                    </div>
                    <div className="flex items-center gap-2">
                       <UserCheck className="w-4 h-4 text-[#d4af37]" />
-                      <span>Role: <strong className="text-white font-sans">{isLeader ? "Team Leader" : "Member"}</strong></span>
+                      <span>Role: <strong className="text-[#d4af37] font-sans">{isLeader ? "Team Leader" : "Member"}</strong></span>
                    </div>
                  </div>
               </div>
@@ -508,7 +511,7 @@ export default function MyTeam() {
                   {canEdit && !isComplete && (
                     <button 
                       onClick={() => setShowInviteModal(true)}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-black px-6 py-3.5 font-bold shadow-lg transition-all hover:bg-gray-200 w-full sm:w-auto"
+                      className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] text-[#d4af37] border border-[#d4af37]/50 px-6 py-3.5 font-bold shadow-[0_0_15px_rgba(212,175,55,0.15)] transition-all hover:text-[#f4e8c1] hover:border-[#f4e8c1] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] w-full sm:w-auto hover:scale-[1.02]"
                     >
                       <MailPlus className="w-5 h-5" />
                       <span>Invite Member</span>
@@ -522,11 +525,11 @@ export default function MyTeam() {
           
           {/* MEMBERS ROSTER */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-               <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-4">
+               <h3 className="text-xl font-bold text-[#e8d7b5] flex items-center gap-2">
                  <Users className="w-5 h-5 text-[#d4af37]" /> Team Roster
                </h3>
-               <span className="text-sm text-gray-500">{team.members.length} members</span>
+               <span className="text-sm text-[#e8d7b5]/60">{team.members.length} members</span>
             </div>
             
             <div className="space-y-4">
@@ -545,8 +548,8 @@ export default function MyTeam() {
                         className="flex items-center gap-4 flex-1 cursor-pointer" 
                         onClick={() => setSelectedUser({ user: member, action: 'view' })}
                      >
-                       <div className="relative">
-                          <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl ${isMemberLeader ? 'bg-gradient-to-br from-[#d4af37] to-[#8a7224] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-[#05070f] border border-white/10 text-white'}`}>
+                     <div className="relative">
+                          <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl ${isMemberLeader ? 'bg-gradient-to-br from-[#d4af37] to-[#8a7224] text-[#080b16] shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-[#080b16] border border-[#d4af37]/30 text-[#e8d7b5]'}`}>
                             {member.name.charAt(0).toUpperCase()}
                           </div>
                           {isMemberLeader && (
@@ -557,15 +560,15 @@ export default function MyTeam() {
                        </div>
                        
                        <div>
-                         <h4 className="font-bold text-lg text-white flex items-center gap-2">
+                         <h4 className="font-bold text-lg text-[#e8d7b5] flex items-center gap-2">
                            {member.name}
                            {isMemberLeader && (
-                             <span className="text-[9px] bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 px-2 py-0.5 rounded uppercase tracking-widest font-bold">
+                             <span className="text-[9px] bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 px-2 py-0.5 rounded uppercase tracking-widest font-bold shadow-[0_0_10px_rgba(212,175,55,0.1)]">
                                Leader
                              </span>
                            )}
                          </h4>
-                         <p className="text-sm text-gray-400 mt-0.5">
+                         <p className="text-sm text-[#e8d7b5]/60 mt-0.5 font-serif">
                            {member.college || "No college"} {member.branch && `• ${member.branch}`}
                          </p>
                        </div>
@@ -580,7 +583,7 @@ export default function MyTeam() {
                              <a 
                                href={`mailto:${member.email}`} 
                                onClick={e => e.stopPropagation()}
-                               className="p-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-[#d4af37]/20 hover:text-[#d4af37] transition-colors"
+                               className="p-2.5 rounded-xl bg-[#080b16]/60 border border-[#d4af37]/20 text-[#e8d7b5]/60 hover:bg-[#d4af37]/20 hover:text-[#d4af37] hover:border-[#d4af37]/50 transition-all duration-300"
                                title="Send Email"
                              >
                                 <Mail className="w-4 h-4" />
@@ -589,7 +592,7 @@ export default function MyTeam() {
                                <a 
                                  href={`tel:${member.phone}`} 
                                  onClick={e => e.stopPropagation()}
-                                 className="p-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-[#d4af37]/20 hover:text-[#d4af37] transition-colors"
+                                 className="p-2.5 rounded-xl bg-[#080b16]/60 border border-[#d4af37]/20 text-[#e8d7b5]/60 hover:bg-[#d4af37]/20 hover:text-[#d4af37] hover:border-[#d4af37]/50 transition-all duration-300"
                                  title="Call Phone"
                                >
                                   <Phone className="w-4 h-4" />
@@ -597,7 +600,7 @@ export default function MyTeam() {
                              )}
                           </div>
                        ) : (
-                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/5 text-[10px] uppercase text-gray-500 font-bold tracking-widest">
+                          <div className="px-3 py-1.5 rounded bg-[#080b16]/60 border border-[#d4af37]/20 text-[10px] uppercase text-[#e8d7b5]/50 font-bold tracking-widest">
                              Contact Hidden
                           </div>
                        )}
@@ -631,30 +634,30 @@ export default function MyTeam() {
             
             {/* Team Settings Panel (Leader only) */}
             {(isLeader || !isLeader) && (
-               <div className="bg-[#101522]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-                  <h3 className="font-bold text-white mb-5 flex items-center gap-2 border-b border-white/5 pb-3">
-                     <Settings className="w-5 h-5 text-gray-400" /> Options
+               <div className="bg-[#10182b]/80 backdrop-blur-sm border border-[#d4af37]/20 rounded-3xl p-6 parchment-card shadow-[0_0_20px_rgba(212,175,55,0.05)]">
+                  <h3 className="font-bold text-[#e8d7b5] mb-5 flex items-center gap-2 border-b border-[#d4af37]/20 pb-3">
+                     <Settings className="w-5 h-5 text-[#d4af37]" /> Options
                   </h3>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {canEdit && (
                       <button 
                         onClick={() => {
                           setNewDomain(team.domain);
                           setShowDomainModal(true);
                         }}
-                        className="w-full flex items-center justify-between text-gray-300 bg-white/5 border border-white/5 py-3 px-4 rounded-xl hover:bg-white/10 transition-colors"
+                        className="w-full flex items-center justify-between text-[#e8d7b5] bg-[#080b16]/60 border border-[#d4af37]/20 py-3.5 px-4 rounded-xl hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50 transition-all duration-300"
                       >
-                        <span className="font-medium text-sm">Change Domain</span>
-                        <Globe className="w-4 h-4 text-gray-500" />
+                        <span className="font-medium text-sm font-serif">Change Domain</span>
+                        <Globe className="w-4 h-4 text-[#d4af37]/60" />
                       </button>
                     )}
 
                     {canEdit && !isComplete && (
-                      <div className="flex items-center justify-between bg-white/5 border border-white/5 p-4 rounded-xl">
+                      <div className="flex items-center justify-between bg-[#080b16]/60 border border-[#d4af37]/20 p-4 rounded-xl">
                         <div>
-                           <span className="block text-sm font-medium text-gray-300">Recruiting</span>
-                           <span className="block text-xs text-gray-500 mt-0.5">Show team in discovery</span>
+                           <span className="block text-sm font-medium text-[#e8d7b5]">Recruiting</span>
+                           <span className="block text-xs text-[#e8d7b5]/60 mt-0.5 font-serif">Show team in discovery</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -663,20 +666,20 @@ export default function MyTeam() {
                             checked={team.lookingForTeammates || false}
                             onChange={handleToggleLookingForTeammates}
                           />
-                          <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37] peer-checked:after:bg-black"></div>
+                          <div className="w-11 h-6 bg-[#10182b] border border-[#d4af37]/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-[#080b16] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#d4af37]/50 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37] peer-checked:after:bg-[#080b16]"></div>
                         </label>
                       </div>
                     )}
 
                     {isLeader && team.members.length >= (event?.teamSizeMin || 2) && team.members.length <= (event?.teamSizeMax || 4) && (
-                      <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                        isComplete ? 'bg-green-900/10 border-green-500/30' : 'bg-[#d4af37]/5 border-[#d4af37]/20'
+                      <div className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${
+                        isComplete ? 'bg-green-900/20 border-green-500/30' : 'bg-[#d4af37]/5 border-[#d4af37]/30'
                       }`}>
                         <div>
                            <span className={`block text-sm font-bold ${isComplete ? 'text-green-400' : 'text-[#d4af37]'}`}>
                              {isComplete ? 'Team Complete' : 'Mark as Complete'}
                            </span>
-                           <span className="block text-xs text-gray-500 mt-0.5">
+                           <span className="block text-xs text-[#e8d7b5]/60 mt-1 font-serif">
                              {isComplete ? (team.members.length >= (event?.teamSizeMax || 4) ? 'Team is full and ready for submission' : 'Uncheck to recruit again') : 'Ready for submission?'}
                            </span>
                         </div>
@@ -688,7 +691,7 @@ export default function MyTeam() {
                               checked={isComplete}
                               onChange={handleToggleStatus}
                             />
-                            <div className="w-11 h-6 bg-[#05070f] border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-black"></div>
+                            <div className="w-11 h-6 bg-[#10182b] border border-[#d4af37]/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-[#080b16] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#d4af37]/50 after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-[#080b16]"></div>
                           </label>
                         )}
                       </div>
@@ -717,14 +720,14 @@ export default function MyTeam() {
 
             {/* Pending Requests / Activity (Leader Only) */}
             {isLeader && (
-              <div className="bg-[#101522]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-                <h3 className="font-bold text-white mb-5 flex items-center gap-2 border-b border-white/5 pb-3">
-                   <UserCheck className="w-5 h-5 text-gray-400" /> Pending Requests
+              <div className="bg-[#10182b]/80 backdrop-blur-sm border border-[#d4af37]/20 rounded-3xl p-6 parchment-card shadow-[0_0_20px_rgba(212,175,55,0.05)]">
+                <h3 className="font-bold text-[#e8d7b5] mb-5 flex items-center gap-2 border-b border-[#d4af37]/20 pb-3">
+                   <UserCheck className="w-5 h-5 text-[#d4af37]" /> Pending Requests
                 </h3>
                 
                 {joinRequests.length === 0 ? (
-                  <div className="text-center py-6 bg-white/5 rounded-xl border border-white/5 border-dashed">
-                     <p className="text-sm text-gray-500">No pending requests</p>
+                  <div className="text-center py-6 bg-[#080b16]/60 rounded-xl border border-[#d4af37]/20 border-dashed">
+                     <p className="text-sm text-[#e8d7b5]/60 font-serif">No pending requests</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -732,21 +735,21 @@ export default function MyTeam() {
                       <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                         key={req._id} 
-                        className="p-4 border border-[#d4af37]/20 rounded-xl bg-[#05070f] flex flex-col gap-3 shadow-md"
+                        className="p-4 border border-[#d4af37]/30 rounded-xl bg-[#080b16]/80 flex flex-col gap-3 shadow-md hover:border-[#d4af37]/50 transition-colors"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white">
+                             <div className="w-9 h-9 rounded-full bg-[#10182b] border border-[#d4af37]/20 flex items-center justify-center text-sm font-bold text-[#d4af37]">
                                 {req.fromUserId.name.charAt(0)}
                              </div>
                              <div>
-                               <p className="text-sm font-bold text-white">{req.fromUserId.name}</p>
-                               <p className="text-[10px] text-gray-400">{req.fromUserId.skills?.slice(0,2).join(', ') || 'No skills listed'}</p>
+                               <p className="text-sm font-bold text-[#e8d7b5]">{req.fromUserId.name}</p>
+                               <p className="text-[10px] text-[#e8d7b5]/60 font-serif">{req.fromUserId.skills?.slice(0,2).join(', ') || 'No skills listed'}</p>
                              </div>
                           </div>
                           <button
                             onClick={() => setSelectedUser({ user: req.fromUserId, action: 'request', reqId: req._id })}
-                            className="text-xs flex items-center gap-1 bg-white/10 text-white px-2 py-1 rounded-md hover:bg-white/20 transition-colors"
+                            className="text-xs flex items-center gap-1 bg-[#10182b] border border-[#d4af37]/20 text-[#d4af37] px-2 py-1 rounded-md hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50 transition-colors uppercase tracking-wider font-bold"
                           >
                             <Eye className="w-3 h-3" /> View
                           </button>
@@ -755,14 +758,14 @@ export default function MyTeam() {
                         <div className="flex gap-2">
                           <button 
                             onClick={() => handleRejectRequest(req._id)}
-                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-[#10182b] text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 transition-colors uppercase tracking-wider"
                           >
                             Reject
                           </button>
                           <button 
                             onClick={() => handleAcceptRequest(req._id)}
                             disabled={!canEdit || isComplete}
-                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/30 hover:bg-[#d4af37] hover:text-black transition-colors disabled:opacity-30"
+                            className="flex-1 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] text-[#d4af37] border border-[#d4af37]/50 hover:text-[#f4e8c1] hover:border-[#f4e8c1] transition-colors disabled:opacity-30 uppercase tracking-wider shadow-[0_0_10px_rgba(212,175,55,0.1)]"
                           >
                             Accept
                           </button>
