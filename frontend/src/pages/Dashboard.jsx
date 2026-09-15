@@ -150,9 +150,9 @@ const Dashboard = () => {
 
         {/* The Four Houses / Domains */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold font-display tracking-wider text-[#e8d7b5]">Explore Domains</h3>
-            <span className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-widest px-3 py-1 bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30">Select a path</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+            <h3 className="text-xl font-bold font-display tracking-wider text-[#e8d7b5]">Available Houses</h3>
+            <span className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-widest px-3 py-1 bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30">Create or join a team to choose your house</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {HOUSES_DATA.map((house, idx) => {
@@ -166,8 +166,7 @@ const Dashboard = () => {
                   transition={{ delay: idx * 0.1 }}
                   onMouseEnter={() => setHoveredHouse(house.id)}
                   onMouseLeave={() => setHoveredHouse(null)}
-                  onClick={() => navigate(`/team/find?domain=${house.id}`)}
-                  className={`group relative cursor-pointer overflow-hidden rounded-xl border ${house.borderColor} ${house.hoverBorder} bg-gradient-to-b ${house.bgGradient} p-5 backdrop-blur-xl transition-all duration-300`}
+                  className={`group relative overflow-hidden rounded-xl border ${house.borderColor} ${house.hoverBorder} bg-gradient-to-b ${house.bgGradient} p-5 backdrop-blur-xl transition-all duration-300`}
                   style={{
                     boxShadow: isHovered
                       ? `0 10px 30px ${house.glowColor}, inset 0 0 15px ${house.glowColor}`
