@@ -171,6 +171,7 @@ export default function FindTeam() {
             </div>
           )}
         </main>
+      </div>
 
       <DetailModal
         isOpen={!!selectedTeam}

@@ -4,9 +4,11 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import { Users, Wand2 } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 export default function CreateTeam() {
   const navigate = useNavigate();
+  const { fetchUser } = useAuthStore();
   const [user, setUser] = useState(null);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +66,7 @@ export default function CreateTeam() {
         eventId: event._id,
         lookingForTeammates: formData.lookingForTeammates,
       });
+      await fetchUser(); // Ensure global state is synced with the new teamId
       toast.success("Team forged successfully! Welcome Leader.");
       navigate("/team/my-team");
     } catch (error) {

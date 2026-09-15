@@ -30,7 +30,8 @@ export const createTeam = async (req, res) => {
       eventId,
       leaderId,
       members: [leaderId],
-      status: 'forming'
+      status: 'forming',
+      lookingForTeammates: req.body.lookingForTeammates !== undefined ? req.body.lookingForTeammates : true
     });
 
     await newTeam.save();
