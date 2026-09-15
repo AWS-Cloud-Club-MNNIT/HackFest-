@@ -4,9 +4,10 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import { motion } from "framer-motion";
-import { User, CheckCircle2, AlertCircle, Eye } from "lucide-react";
+import { User, CheckCircle2, AlertCircle, Eye, Users, ChevronRight, PlusCircle, Search } from "lucide-react";
 import DetailModal from "../components/common/DetailModal";
 import TeamDetail from "../components/TeamDetail";
+import { HOUSES_DATA } from "../components/HouseDomains";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [processingInvite, setProcessingInvite] = useState(null);
   
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [hoveredHouse, setHoveredHouse] = useState(null);
 
   useEffect(() => {
     const getUserAndEvent = async () => {
@@ -111,7 +113,6 @@ const Dashboard = () => {
     <div className="min-h-screen bg-[#05070f] text-white">
       <DashboardNavbar user={user} />
 
-      {/* Main */}
       <main className="max-w-6xl mx-auto px-6 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -125,6 +126,66 @@ const Dashboard = () => {
             Welcome, {user.name}
           </h2>
         </motion.div>
+
+        {/* The Four Houses / Domains */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold font-display tracking-wider text-[#e8d7b5]">Explore Domains</h3>
+            <span className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-widest px-3 py-1 bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30">Select a path</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {HOUSES_DATA.map((house, idx) => {
+              const isHovered = hoveredHouse === house.id;
+              const isAnyHovered = hoveredHouse !== null;
+              return (
+                <motion.div
+                  key={house.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  onMouseEnter={() => setHoveredHouse(house.id)}
+                  onMouseLeave={() => setHoveredHouse(null)}
+                  onClick={() => navigate(`/team/find?domain=${house.id}`)}
+                  className={`group relative cursor-pointer overflow-hidden rounded-xl border ${house.borderColor} ${house.hoverBorder} bg-gradient-to-b ${house.bgGradient} p-5 backdrop-blur-xl transition-all duration-300`}
+                  style={{
+                    boxShadow: isHovered
+                      ? `0 10px 30px ${house.glowColor}, inset 0 0 15px ${house.glowColor}`
+                      : '0 6px 20px rgba(0,0,0,0.4)',
+                    transform: isHovered ? 'scale(1.02)' : isAnyHovered && !isHovered ? 'scale(0.98)' : 'scale(1)',
+                    opacity: isAnyHovered && !isHovered ? 0.6 : 1,
+                  }}
+                >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
+                  
+                  <div className="relative z-10 flex flex-col h-full items-center text-center">
+                    <div className="h-14 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]">
+                       <img
+                          src={house.logoImg}
+                          alt={`${house.name} Logo`}
+                          className="h-12 w-auto object-contain"
+                          onError={(e) => {
+                            if (!e.currentTarget.dataset.triedAlt) {
+                              e.currentTarget.dataset.triedAlt = 'true'
+                              e.currentTarget.src = `/images/houses/${house.id}.png`
+                            } else {
+                              e.currentTarget.style.display = 'none'
+                            }
+                          }}
+                        />
+                    </div>
+                    <h4 className="font-harry text-3xl font-bold tracking-wider text-[#f4e8c1] mb-2">{house.name}</h4>
+                    <span className={`text-[9px] font-bold tracking-widest uppercase border ${house.badgeBg} px-2.5 py-0.5 rounded-full mb-3 shadow-sm`}>
+                      {house.domainCode}
+                    </span>
+                    <p className={`text-xs font-medium font-display ${house.textColor} tracking-wide group-hover:text-white transition-colors`}>
+                      {house.domainTitle}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -187,96 +248,89 @@ const Dashboard = () => {
                 </div>
                 <p className="text-sm text-gray-400">
                   {user.lookingForTeam 
-                    ? "You are currently visible to team leaders looking for members."
-                    : "You are hidden from team leaders. Turn this on if you want to be discovered."}
+                    ? "You are currently visible to team leaders."
+                    : "Turn this on if you want to be discovered."}
                 </p>
               </div>
             )}
           </div>
 
-          {/* Right Column: Actions */}
+          {/* Right Column: Actions / Team Details */}
           <div className="lg:col-span-2 space-y-6">
             {!user.teamId ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
+                className="h-full flex flex-col"
               >
-                <div className="bg-[#101522]/40 border border-white/5 rounded-3xl p-8 mb-6">
-                  <h3 className="text-2xl font-semibold text-white mb-2">Your Next Step</h3>
-                  <p className="text-gray-400 mb-8">You are not in a team yet. Choose how you want to participate in the event.</p>
+                <div className="bg-[#101522]/40 border border-[#d4af37]/20 rounded-3xl p-6 sm:p-8 flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Users className="w-6 h-6 text-[#d4af37]" />
+                    <h3 className="text-2xl font-semibold text-white">Team Formation</h3>
+                  </div>
                   
                   {/* Incoming Invites Section */}
                   {invites.length > 0 && (
-                    <div className="mb-8">
+                    <div className="mb-8 p-5 bg-[#d4af37]/5 border border-[#d4af37]/30 rounded-2xl">
                       <h4 className="text-[#d4af37] font-bold mb-4 uppercase tracking-wider text-sm flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        Pending Team Invites ({invites.length})
+                        Pending Invites ({invites.length})
                       </h4>
                       <div className="space-y-3">
                         {invites.map((invite) => (
                           <div key={invite._id} className="bg-[#101522] border border-[#d4af37]/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                              <h5 className="font-bold text-white text-lg flex items-center gap-2">
-                                {invite.teamId.name}
-                                <span className="text-xs bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30 uppercase tracking-wider">
-                                  Invite
-                                </span>
-                              </h5>
+                              <h5 className="font-bold text-white text-lg">{invite.teamId.name}</h5>
                               <p className="text-xs text-gray-400 mt-1">
                                 Domain: <span className="text-[#d4af37]">{invite.teamId.domain || "N/A"}</span> • 
                                 Invited by: <span className="text-[#d4af37]">{invite.fromUserId.name}</span>
                               </p>
                             </div>
-                            <div className="flex gap-2 w-full sm:w-auto">
-                              <button
-                                onClick={() => setSelectedTeam(invite)}
-                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-600 hover:bg-gray-700 rounded-lg text-sm font-bold transition"
-                              >
-                                <Eye className="w-4 h-4" /> View Team
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => setSelectedTeam(invite)}
+                              className="px-4 py-2 bg-gray-800 text-gray-300 border border-gray-600 hover:bg-gray-700 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                            >
+                              <Eye className="w-4 h-4" /> View Details
+                            </button>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Option A */}
-                    <div className="bg-[#101522]/80 border border-[#d4af37]/40 rounded-2xl p-6 hover:shadow-[0_0_25px_rgba(212,175,55,0.15)] transition-all duration-300 relative group">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <svg className="w-16 h-16 text-[#d4af37]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Create Team Card */}
+                    <div 
+                      onClick={() => navigate("/team/create")}
+                      className="group cursor-pointer bg-[#101522]/80 border border-[#d4af37]/20 rounded-2xl p-6 hover:border-[#d4af37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-all duration-300 flex flex-col"
+                    >
+                      <div className="w-12 h-12 bg-[#d4af37]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#d4af37] group-hover:text-black transition-colors text-[#d4af37]">
+                        <PlusCircle className="w-6 h-6" />
                       </div>
-                      <span className="px-2 py-1 text-[10px] tracking-[0.2em] font-bold text-black uppercase bg-[#d4af37] rounded-sm mb-4 inline-block">Option A</span>
-                      <h3 className="text-2xl font-bold text-[#d4af37] mb-3">Create Team</h3>
-                      <p className="text-gray-400 text-sm mb-6 min-h-[60px]">
-                        Form a new team, become the Team Leader, and invite eligible participants to join you.
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#d4af37] transition-colors">Create Team</h3>
+                      <p className="text-gray-400 text-sm mb-6 flex-1">
+                        Form a new team, become the Leader, and invite members to join your quest.
                       </p>
-                      <button
-                        onClick={() => navigate("/team/create")}
-                        className="w-full py-3 rounded-lg bg-white/5 border border-white/10 hover:bg-[#d4af37] hover:text-black hover:border-[#d4af37] transition-all font-semibold"
-                      >
-                        Create a New Team
-                      </button>
+                      <div className="flex items-center text-[#d4af37] text-sm font-bold uppercase tracking-wider">
+                        Get Started <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
 
-                    {/* Option B */}
-                    <div className="bg-[#101522]/80 border border-blue-500/40 rounded-2xl p-6 hover:shadow-[0_0_25px_rgba(59,130,246,0.15)] transition-all duration-300 relative group">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <svg className="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    {/* Find Team Card */}
+                    <div 
+                      onClick={() => navigate("/team/find")}
+                      className="group cursor-pointer bg-[#101522]/80 border border-blue-500/20 rounded-2xl p-6 hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all duration-300 flex flex-col"
+                    >
+                      <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500 group-hover:text-white transition-colors text-blue-500">
+                        <Search className="w-6 h-6" />
                       </div>
-                      <span className="px-2 py-1 text-[10px] tracking-[0.2em] font-bold text-black uppercase bg-blue-500 rounded-sm mb-4 inline-block">Option B</span>
-                      <h3 className="text-2xl font-bold text-blue-500 mb-3">Find a Team</h3>
-                      <p className="text-gray-400 text-sm mb-6 min-h-[60px]">
-                        Looking for a squad? Browse available teams that are actively recruiting and send a request.
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">Find a Team</h3>
+                      <p className="text-gray-400 text-sm mb-6 flex-1">
+                        Looking for a squad? Browse available teams actively recruiting members.
                       </p>
-                      <button
-                        onClick={() => navigate("/team/find")}
-                        className="w-full py-3 rounded-lg bg-white/5 border border-white/10 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-semibold"
-                      >
-                        Browse Available Teams
-                      </button>
+                      <div className="flex items-center text-blue-500 text-sm font-bold uppercase tracking-wider">
+                        Browse Teams <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -285,18 +339,30 @@ const Dashboard = () => {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
+                className="h-full"
               >
-                <div className="bg-[#101522] border border-[#d4af37]/40 rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(212,175,55,0.1)] relative overflow-hidden">
-                   <div className="w-20 h-20 bg-[#d4af37]/20 rounded-full flex items-center justify-center mx-auto mb-6 text-[#d4af37]">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <div className="bg-gradient-to-br from-[#10182b] to-[#080b16] border border-[#d4af37]/30 rounded-3xl p-8 shadow-[0_0_30px_rgba(212,175,55,0.05)] relative overflow-hidden h-full flex flex-col justify-center">
+                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <Users className="w-48 h-48 text-[#d4af37]" />
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-3">You are part of a team</h3>
-                  <p className="text-gray-400 mb-8 max-w-md mx-auto">Access your team dashboard to view members, manage invites, and prepare for the event.</p>
+                  
+                  <span className="inline-block px-3 py-1 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded-full text-[10px] font-bold tracking-widest uppercase mb-6 self-start">
+                    Team Status Active
+                  </span>
+                  
+                  <h3 className="text-3xl sm:text-4xl font-display font-bold text-white mb-3 relative z-10">
+                    You're part of a team
+                  </h3>
+                  
+                  <p className="text-gray-400 text-sm sm:text-base mb-8 max-w-md relative z-10">
+                    Your team dashboard is ready. Collaborate with your members, manage invitations, and prepare for the hackathon journey.
+                  </p>
+                  
                   <button
                     onClick={() => navigate("/team/my-team")}
-                    className="px-10 py-4 rounded-xl bg-gradient-to-r from-[#e6c65c] to-[#d4af37] text-black font-bold text-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
+                    className="self-start px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#e6c65c] to-[#d4af37] text-black font-bold text-sm sm:text-base hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all flex items-center gap-2"
                   >
-                    Go to My Team
+                    Go to My Team <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </motion.div>
