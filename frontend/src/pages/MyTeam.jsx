@@ -12,10 +12,13 @@ import {
 } from "lucide-react";
 import DetailModal from "../components/common/DetailModal";
 import ParticipantDetail from "../components/ParticipantDetail";
+import { useAuthStore } from "../store/useAuthStore";
+import { useNotificationStore } from "../store/useNotificationStore";
 
 export default function MyTeam() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, fetchUser, updateUserField } = useAuthStore();
+  const fetchNotifications = useNotificationStore(state => state.fetchNotifications);
   const [team, setTeam] = useState(null);
   const [event, setEvent] = useState(null);
   const [joinRequests, setJoinRequests] = useState([]);
@@ -64,15 +67,19 @@ export default function MyTeam() {
   useEffect(() => {
     const init = async () => {
       try {
-        const authRes = await API.get("/auth/me");
-        setUser(authRes.data.user);
-        await fetchTeamData(authRes.data.user);
+        let fetchedUser = user;
+        if (!fetchedUser) {
+          fetchedUser = await fetchUser();
+        }
+        await fetchTeamData(fetchedUser);
       } catch (error) {
-        navigate("/login");
+        if (error.response?.status === 401 || error.status === 401) {
+          navigate("/login");
+        }
       }
     };
     init();
-  }, [navigate]);
+  }, [navigate, fetchUser]);
 
   const actualLeaderId = team?.leaderId?._id || team?.leaderId;
   const isLeader = user && team && user._id === actualLeaderId;
@@ -128,24 +135,37 @@ export default function MyTeam() {
   };
 
   const handleToggleLookingForTeammates = async () => {
+    const previousState = team.lookingForTeammates;
+    
+    // Optimistic Update
+    setTeam(prev => ({ ...prev, lookingForTeammates: !previousState }));
+    
     try {
       await API.patch(`/teams/${team._id}/looking-for-teammates`, {
-        lookingForTeammates: !team.lookingForTeammates
+        lookingForTeammates: !previousState
       });
-      toast.success(`Team is now ${!team.lookingForTeammates ? 'looking for teammates' : 'hidden from discovery'}`);
-      fetchTeamData(user);
+      toast.success(`Team is now ${!previousState ? 'looking for teammates' : 'hidden from discovery'}`);
     } catch (error) {
+      // Revert
+      setTeam(prev => ({ ...prev, lookingForTeammates: previousState }));
       toast.error("Failed to update team visibility");
     }
   };
 
   const handleRemoveMember = async (memberId) => {
     if (!window.confirm("Are you sure you want to remove this member?")) return;
+    
+    // Optimistic remove
+    const memberToRemove = team.members.find(m => m._id === memberId);
+    setTeam(prev => ({ ...prev, members: prev.members.filter(m => m._id !== memberId) }));
+    
     try {
       await API.delete(`/teams/${team._id}/members/${memberId}`);
       toast.success("Member removed");
-      fetchTeamData(user);
     } catch (error) {
+      if (memberToRemove) {
+        setTeam(prev => ({ ...prev, members: [...prev.members, memberToRemove] }));
+      }
       toast.error(error.response?.data?.message || "Failed to remove member");
     }
   };
@@ -156,20 +176,27 @@ export default function MyTeam() {
       await API.post(`/teams/${team._id}/leave`);
       toast.success("You have left the team");
       
-      const authRes = await API.get("/auth/me");
-      setUser(authRes.data.user);
       setTeam(null);
+      await fetchUser();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to leave team");
     }
   };
 
   const handleAcceptRequest = async (requestId) => {
+    // Optimistic UI update: Hide request immediately
+    const reqToAccept = joinRequests.find(r => r._id === requestId);
+    setJoinRequests(prev => prev.filter(r => r._id !== requestId));
+    
     try {
       await API.patch(`/join-requests/${requestId}/accept`);
       toast.success("Member added to team!");
-      fetchTeamData(user);
+      fetchTeamData(user); // Get updated members roster
+      fetchNotifications();
     } catch (error) {
+      if (reqToAccept) {
+        setJoinRequests(prev => [...prev, reqToAccept]);
+      }
       toast.error(error.response?.data?.message || "Failed to accept request");
     } finally {
       setSelectedUser(null);
@@ -177,11 +204,18 @@ export default function MyTeam() {
   };
 
   const handleRejectRequest = async (requestId) => {
+    // Optimistic UI update: Hide request immediately
+    const reqToReject = joinRequests.find(r => r._id === requestId);
+    setJoinRequests(prev => prev.filter(r => r._id !== requestId));
+    
     try {
       await API.patch(`/join-requests/${requestId}/reject`);
       toast.success("Request rejected");
-      fetchTeamData(user);
+      fetchNotifications();
     } catch (error) {
+      if (reqToReject) {
+        setJoinRequests(prev => [...prev, reqToReject]);
+      }
       toast.error("Failed to reject request");
     } finally {
       setSelectedUser(null);

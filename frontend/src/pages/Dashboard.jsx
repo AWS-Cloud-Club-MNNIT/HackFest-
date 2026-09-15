@@ -8,10 +8,13 @@ import { User, CheckCircle2, AlertCircle, Eye, Users, ChevronRight, PlusCircle, 
 import DetailModal from "../components/common/DetailModal";
 import TeamDetail from "../components/TeamDetail";
 import { HOUSES_DATA } from "../components/HouseDomains";
+import { useAuthStore } from "../store/useAuthStore";
+import { useNotificationStore } from "../store/useNotificationStore";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, fetchUser, updateUserField } = useAuthStore();
+  const fetchNotifications = useNotificationStore(state => state.fetchNotifications);
   const [activeEvent, setActiveEvent] = useState(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [invites, setInvites] = useState([]);
@@ -23,9 +26,10 @@ const Dashboard = () => {
   useEffect(() => {
     const getUserAndEvent = async () => {
       try {
-        const response = await API.get("/auth/me");
-        const fetchedUser = response.data.user;
-        setUser(fetchedUser);
+        let fetchedUser = user;
+        if (!fetchedUser) {
+          fetchedUser = await fetchUser();
+        }
 
         if (fetchedUser?.role === "super_admin") {
           navigate("/super_admin");
@@ -40,25 +44,29 @@ const Dashboard = () => {
           setInvites(invitesRes.data);
         }
       } catch (error) {
-        if (error.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+        if (error.response?.status === 401 || error.status === 401) {
           navigate("/login");
         }
       }
     };
 
     getUserAndEvent();
-  }, [navigate]);
+  }, [navigate, fetchUser]);
 
   const handleToggleAvailability = async (e) => {
     const isChecked = e.target.checked;
+    const previousState = user.lookingForTeam;
+    
+    // Optimistic Update
+    updateUserField('lookingForTeam', isChecked);
     setUpdatingAvailability(true);
+    
     try {
       const res = await API.patch("/users/availability", { lookingForTeam: isChecked });
-      setUser(res.data.user);
       toast.success(res.data.message);
     } catch (error) {
+      // Revert on failure
+      updateUserField('lookingForTeam', previousState);
       toast.error(error.response?.data?.message || "Failed to update availability");
     } finally {
       setUpdatingAvailability(false);
@@ -68,11 +76,15 @@ const Dashboard = () => {
   const handleAcceptInvite = async (inviteId) => {
     setProcessingInvite(inviteId);
     try {
-      const res = await API.patch(`/invites/${inviteId}/accept`);
+      await API.patch(`/invites/${inviteId}/accept`);
       toast.success("Successfully joined the team!");
-      // Refresh user to get new teamId
-      const userRes = await API.get("/auth/me");
-      setUser(userRes.data.user);
+      
+      // Update local state immediately
+      setInvites(prev => prev.filter(inv => inv._id !== inviteId));
+      
+      // Refresh user and notifications to sync global state
+      await fetchUser();
+      fetchNotifications();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept invite");
     } finally {
@@ -83,11 +95,20 @@ const Dashboard = () => {
 
   const handleRejectInvite = async (inviteId) => {
     setProcessingInvite(inviteId);
+    
+    // Optimistic remove
+    const inviteToReject = invites.find(i => i._id === inviteId);
+    setInvites(prev => prev.filter(inv => inv._id !== inviteId));
+    
     try {
       await API.patch(`/invites/${inviteId}/reject`);
       toast.success("Invite rejected");
-      setInvites(prev => prev.filter(inv => inv._id !== inviteId));
+      fetchNotifications();
     } catch (error) {
+      // Revert if failed
+      if (inviteToReject) {
+        setInvites(prev => [...prev, inviteToReject]);
+      }
       toast.error(error.response?.data?.message || "Failed to reject invite");
     } finally {
       setProcessingInvite(null);

@@ -3,14 +3,28 @@ import { Link, useNavigate } from "react-router-dom";
 import { Bell, Check, Trash2, ShieldAlert } from "lucide-react";
 import API from "../services/api";
 import { io } from "socket.io-client";
+import { useAuthStore } from "../store/useAuthStore";
+import { useNotificationStore } from "../store/useNotificationStore";
 
-const DashboardNavbar = ({ user }) => {
+const DashboardNavbar = ({ user: propUser }) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
+
+  // Global states
+  const storeUser = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
+  const { 
+    notifications, 
+    unreadCount, 
+    loading, 
+    fetchNotifications, 
+    addNotification, 
+    markAsRead, 
+    markAllAsRead 
+  } = useNotificationStore();
+
+  const user = storeUser || propUser;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,19 +36,6 @@ const DashboardNavbar = ({ user }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const res = await API.get("/notifications");
-      setNotifications(res.data || []);
-      setUnreadCount((res.data || []).filter((n) => !n.read).length);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let socket = null;
@@ -48,44 +49,25 @@ const DashboardNavbar = ({ user }) => {
       socket.emit("register", user._id);
 
       socket.on("notification:new", (newNotif) => {
-        setNotifications((prev) => [newNotif, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-        
-        // Optional: show a toast alert for the notification
-        // toast.success(newNotif.message);
+        addNotification(newNotif);
       });
     }
 
     return () => {
       if (socket) socket.disconnect();
     };
-  }, [user]);
+  }, [user, fetchNotifications, addNotification]);
 
   const handleMarkAsRead = async (id) => {
-    try {
-      await API.patch(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Failed to mark notification as read", error);
-    }
+    await markAsRead(id);
   };
 
   const handleMarkAllAsRead = async () => {
-    try {
-      await API.patch("/notifications/read-all");
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error("Failed to mark all as read", error);
-    }
+    await markAllAsRead();
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout();
     navigate("/login");
   };
 

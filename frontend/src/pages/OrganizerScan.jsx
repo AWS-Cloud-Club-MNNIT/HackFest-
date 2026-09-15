@@ -14,6 +14,7 @@ export default function OrganizerScan() {
   const [scannedTeam, setScannedTeam] = useState(null);
   const [scanError, setScanError] = useState(null);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [scanSessionKey, setScanSessionKey] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -57,7 +58,7 @@ export default function OrganizerScan() {
         scanner.clear().catch(console.error);
       };
     }
-  }, [loading, user]);
+  }, [loading, user, scanSessionKey]);
 
   const handleQRScan = async (qrToken, scanner) => {
     setScanError(null);
@@ -94,8 +95,8 @@ export default function OrganizerScan() {
   const handleReset = () => {
     setScannedTeam(null);
     setScanError(null);
-    // User will need to manually resume scanning via the html5-qrcode UI or we remount
-    window.location.reload(); 
+    // Increment key to trigger scanner remount without page reload
+    setScanSessionKey(prev => prev + 1);
   };
 
   if (loading) return null;
@@ -115,7 +116,7 @@ export default function OrganizerScan() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* Scanner Area */}
-          <div className="bg-[#10182b] border border-[#d4af37]/30 rounded-2xl p-4 shadow-xl overflow-hidden">
+          <div key={`scanner-wrapper-${scanSessionKey}`} className="bg-[#10182b] border border-[#d4af37]/30 rounded-2xl p-4 shadow-xl overflow-hidden">
             <div id="reader" className="w-full bg-black rounded-xl overflow-hidden border border-[#d4af37]/20"></div>
           </div>
 
