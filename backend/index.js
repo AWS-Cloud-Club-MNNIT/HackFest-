@@ -26,6 +26,14 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log(`User connected via socket: ${socket.id}`);
 
+  // Listen for user registering their socket
+  socket.on('register', (userId) => {
+    if (userId) {
+      socket.join(`user:${userId}`);
+      console.log(`Socket ${socket.id} joined room user:${userId}`);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
   });

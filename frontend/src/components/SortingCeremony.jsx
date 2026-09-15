@@ -61,7 +61,7 @@ const JOURNEY = [
 export default function SortingCeremony() {
   return (
     <section
-      id="sorting"
+      id="journey"
       className="relative overflow-hidden bg-[#080b16] py-24 sm:py-32 border-t border-[#d4af37]/20"
     >
       {/* Background */}

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_URL = "http://localhost:5000/api/admin";
+import API from "../../services/api";
+import UsersTab from "./tabs/UsersTab";
+import TeamsTab from "./tabs/TeamsTab";
+import BroadCastTab from "./tabs/BroadCastTab";
+import EventsTab from "./tabs/EventsTab";
+import OverviewTab from "./tabs/OverviewTab";
 
 const menuItems = [
   {
@@ -11,7 +16,7 @@ const menuItems = [
   },
   {
     id: "events",
-    label: "Events",
+    label: "Domains & Config",
     icon: "▤",
   },
   {
@@ -31,16 +36,7 @@ const menuItems = [
   },
 ];
 
-const emptyEvent = {
-  name: "",
-  description: "",
-  date: "",
-  venue: "",
-  registrationDeadline: "",
-  maxParticipants: "",
-  status: "draft",
-  isActive: true,
-};
+// removed emptyEvent
 
 function StatCard({ icon, label, value, description }) {
   return (
@@ -124,10 +120,7 @@ function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-
-  const [eventForm, setEventForm] = useState(emptyEvent);
+  // Modals removed, handled by EventsTab
 
   // =========================================================
   // FETCH DASHBOARD
@@ -138,13 +131,8 @@ function SuperAdminDashboard() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/dashboard`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load dashboard");
-      }
-
-      const data = await response.json();
+      const response = await API.get("/super-admin/stats");
+      const data = response.data;
 
       setDashboard(data.dashboard);
     } catch (error) {
@@ -163,13 +151,8 @@ function SuperAdminDashboard() {
     try {
       setEventsLoading(true);
 
-      const response = await fetch(`${API_URL}/events`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load events");
-      }
-
-      const data = await response.json();
+      const response = await API.get("/super-admin/events");
+      const data = response.data;
 
       setEvents(data.events || []);
     } catch (error) {
@@ -214,115 +197,7 @@ function SuperAdminDashboard() {
     }, 3000);
   };
 
-  // =========================================================
-  // FORM INPUT
-  // =========================================================
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setEventForm((previous) => ({
-      ...previous,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  // =========================================================
-  // OPEN CREATE MODAL
-  // =========================================================
-
-  const openCreateEvent = () => {
-    setEditingEvent(null);
-    setEventForm(emptyEvent);
-    setShowEventModal(true);
-  };
-
-  // =========================================================
-  // OPEN EDIT MODAL
-  // =========================================================
-
-  const openEditEvent = (event) => {
-    setEditingEvent(event);
-
-    setEventForm({
-      name: event.name || "",
-      description: event.description || "",
-      date: event.date
-        ? new Date(event.date).toISOString().slice(0, 16)
-        : "",
-      venue: event.venue || "",
-      registrationDeadline: event.registrationDeadline
-        ? new Date(event.registrationDeadline)
-            .toISOString()
-            .slice(0, 16)
-        : "",
-      maxParticipants: event.maxParticipants || "",
-      status: event.status || "draft",
-      isActive: event.isActive ?? true,
-    });
-
-    setShowEventModal(true);
-  };
-
-  // =========================================================
-  // CREATE / UPDATE EVENT
-  // =========================================================
-
-  const handleEventSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      setError("");
-
-      const payload = {
-        name: eventForm.name,
-        description: eventForm.description,
-        date: eventForm.date,
-        venue: eventForm.venue,
-        registrationDeadline:
-          eventForm.registrationDeadline || undefined,
-        maxParticipants: eventForm.maxParticipants
-          ? Number(eventForm.maxParticipants)
-          : undefined,
-        status: eventForm.status,
-        isActive: eventForm.isActive,
-      };
-
-      const url = editingEvent
-        ? `${API_URL}/events/${editingEvent._id}`
-        : `${API_URL}/events`;
-
-      const method = editingEvent ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Operation failed");
-      }
-
-      setShowEventModal(false);
-
-      await fetchEvents();
-      await fetchDashboard();
-
-      showSuccess(
-        editingEvent
-          ? "Event updated successfully"
-          : "Event created successfully"
-      );
-    } catch (error) {
-      console.error(error);
-      setError(error.message);
-    }
-  };
+  // Event submission moved to EventsTab
 
   // =========================================================
   // DELETE EVENT
@@ -336,18 +211,8 @@ function SuperAdminDashboard() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/events/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete event");
-      }
+      const response = await API.delete(`/super-admin/events/${id}`);
+      const data = response.data;
 
       await fetchEvents();
       await fetchDashboard();
@@ -399,42 +264,23 @@ function SuperAdminDashboard() {
 
   const renderContent = () => {
     if (activeMenu === "overview") {
-      return (
-        <Overview
-          dashboard={dashboard}
-          events={events}
-          loading={loading}
-          onCreateEvent={openCreateEvent}
-          onNavigate={setActiveMenu}
-          formatDate={formatDate}
-          handleRefresh={handleRefresh}
-        />
-      );
+      return <OverviewTab onNavigateTab={setActiveMenu} />;
     }
 
     if (activeMenu === "events") {
-      return (
-        <EventsPage
-          events={events}
-          loading={eventsLoading}
-          onCreate={openCreateEvent}
-          onEdit={openEditEvent}
-          onDelete={handleDeleteEvent}
-          formatDate={formatDate}
-        />
-      );
+      return <EventsTab />;
     }
 
     if (activeMenu === "users") {
-      return <ComingSoonPage icon="♙" title="Users" />;
+      return <UsersTab />;
     }
 
     if (activeMenu === "teams") {
-      return <ComingSoonPage icon="♜" title="Teams" />;
+      return <TeamsTab />;
     }
 
     if (activeMenu === "broadcast") {
-      return <ComingSoonPage icon="✦" title="Broadcast" />;
+      return <BroadCastTab />;
     }
 
     return null;
@@ -512,26 +358,22 @@ function SuperAdminDashboard() {
       >
         <div className="flex h-full items-center justify-between px-6">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex h-10 w-10 items-center justify-center
-                rounded-xl
-                border border-[#c9a646]/30
-                bg-[#c9a646]/10
-                text-xl
-              "
-            >
-              ⚡
-            </div>
-
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/aws_mnnit_logo.png"
+              alt="AWS MNNIT Logo"
+              className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
             <div>
-              <p className="text-sm font-bold tracking-[0.2em] text-[#e7d49d]">
+              <p className="font-harry text-2xl font-bold tracking-wider text-[#f4e8c1]">
                 AWS SBG
               </p>
 
-              <p className="text-[9px] uppercase tracking-[0.3em] text-[#77839b]">
-                Hogwarts Administration
+              <p className="font-display text-[9px] uppercase tracking-[0.3em] text-[#d4af37] font-sans">
+                Super Admin Ministry
               </p>
             </div>
           </div>
@@ -782,23 +624,7 @@ function SuperAdminDashboard() {
               </p>
             </div>
 
-            <button
-              onClick={openCreateEvent}
-              className="
-                rounded-xl
-                border border-[#d1ad4f]/40
-                bg-[#c9a646]/10
-                px-5 py-3
-                text-sm font-semibold
-                text-[#e6d29b]
-                shadow-[0_0_30px_rgba(201,166,70,0.06)]
-                transition
-                hover:bg-[#c9a646]/20
-                hover:shadow-[0_0_35px_rgba(201,166,70,0.12)]
-              "
-            >
-              + Create Event
-            </button>
+            {/* Create Event button removed */}
           </div>
 
           {/* CONTENT */}
@@ -817,21 +643,7 @@ function SuperAdminDashboard() {
         </div>
       </main>
 
-      {/* =====================================================
-          EVENT MODAL
-      ===================================================== */}
-
-      <AnimatePresence>
-        {showEventModal && (
-          <EventModal
-            form={eventForm}
-            editing={editingEvent}
-            onChange={handleInputChange}
-            onClose={() => setShowEventModal(false)}
-            onSubmit={handleEventSubmit}
-          />
-        )}
-      </AnimatePresence>
+      {/* Event modal removed */}
     </div>
   );
 }
@@ -839,7 +651,6 @@ function SuperAdminDashboard() {
 // =============================================================
 // OVERVIEW
 // =============================================================
-
 function Overview({
   dashboard,
   events,

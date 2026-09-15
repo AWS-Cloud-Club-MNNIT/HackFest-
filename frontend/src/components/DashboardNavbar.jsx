@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Check, Trash2, ShieldAlert } from "lucide-react";
 import API from "../services/api";
+import { io } from "socket.io-client";
 
 const DashboardNavbar = ({ user }) => {
   const navigate = useNavigate();
@@ -36,12 +37,28 @@ const DashboardNavbar = ({ user }) => {
   };
 
   useEffect(() => {
+    let socket = null;
+
     if (user) {
       fetchNotifications();
-      // Polling could be added here if no socket
-      const interval = setInterval(fetchNotifications, 30000); // 30s poll
-      return () => clearInterval(interval);
+      
+      // Initialize Socket
+      socket = io(API.defaults.baseURL.replace('/api', ''));
+
+      socket.emit("register", user._id);
+
+      socket.on("notification:new", (newNotif) => {
+        setNotifications((prev) => [newNotif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        // Optional: show a toast alert for the notification
+        // toast.success(newNotif.message);
+      });
     }
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
   }, [user]);
 
   const handleMarkAsRead = async (id) => {
@@ -89,14 +106,44 @@ const DashboardNavbar = ({ user }) => {
 
   return (
     <nav className="border-b border-[#d4af37]/20 px-6 py-4 flex justify-between items-center bg-[#080b16] sticky top-0 z-50">
-      <Link to="/dashboard" className="group">
-        <h1 className="text-xl font-bold text-[#d4af37] group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all">
-          HACKFEST 1.0
-        </h1>
-        <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
-          Registration Portal
-        </p>
+      <Link to="/dashboard" className="group flex items-center gap-2.5">
+        <img
+          src="/images/aws_mnnit_logo.png"
+          alt="AWS MNNIT Logo"
+          className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+        <div>
+          <h1 className="font-harry text-2xl font-bold text-[#f4e8c1] tracking-wider group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all">
+            HACKFEST 1.0
+          </h1>
+          <p className="font-display text-[10px] font-semibold text-[#d4af37] tracking-widest uppercase font-sans">
+            AWS MNNIT Portal
+          </p>
+        </div>
       </Link>
+
+      <div className="hidden md:flex items-center gap-8">
+        <Link to="/dashboard" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+          Dashboard
+        </Link>
+        {user?.teamId ? (
+          <Link to="/team/my-team" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+            My Team
+          </Link>
+        ) : (
+          <>
+            <Link to="/team/create" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Create Team
+            </Link>
+            <Link to="/team/find" className="text-gray-400 hover:text-[#d4af37] transition font-medium text-sm tracking-wide">
+              Find Team
+            </Link>
+          </>
+        )}
+      </div>
 
       <div className="flex items-center gap-4 relative">
         {/* Notifications Dropdown */}

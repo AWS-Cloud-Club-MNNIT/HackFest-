@@ -20,9 +20,10 @@ import AboutEvent from './components/AboutEvent'
 import AboutClub from './components/AboutClub'
 import ApplyNow from './components/ApplyNow'
 import SortingCeremony from './components/SortingCeremony'
+import HouseDomains from './components/HouseDomains'
 import Top15Section from './components/Top15Section'
 import ChampionshipSection from './components/ChampionshipSection'
-import HouseLeaderboard from './components/HouseLeaderboard'
+import RewardsSection from './components/RewardsSection'
 import PastEvents from './components/PastEvents'
 import OrderOfBuilders from './components/OrderOfBuilders'
 import DailyProphet from './components/DailyProphet'
@@ -37,6 +38,7 @@ import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import CreateTeam from './pages/CreateTeam'
+import FindTeam from './pages/FindTeam'
 import MyTeam from './pages/MyTeam'
 import QRPass from './pages/QRPass'
 import OrganizerScan from './pages/OrganizerScan'
@@ -116,42 +118,46 @@ function Home() {
         </PageSection>
 
         <PageSection index={4}>
-          <SortingCeremony />
+          <HouseDomains />
         </PageSection>
 
         <PageSection index={5}>
-          <AboutEvent />
+          <SortingCeremony />
         </PageSection>
 
         <PageSection index={6}>
-          <Top15Section />
+          <AboutEvent />
         </PageSection>
 
         <PageSection index={7}>
-          <ChampionshipSection />
+          <Top15Section />
         </PageSection>
 
         <PageSection index={8}>
-          <HouseLeaderboard />
+          <ChampionshipSection />
         </PageSection>
 
         <PageSection index={9}>
-          <PastEvents />
+          <RewardsSection />
         </PageSection>
 
         <PageSection index={10}>
-          <OrderOfBuilders />
+          <PastEvents />
         </PageSection>
 
         <PageSection index={11}>
-          <DailyProphet />
+          <OrderOfBuilders />
         </PageSection>
 
         <PageSection index={12}>
-          <FAQ />
+          <DailyProphet />
         </PageSection>
 
         <PageSection index={13}>
+          <FAQ />
+        </PageSection>
+
+        <PageSection index={14}>
           <Footer />
         </PageSection>
 
@@ -235,12 +241,29 @@ function App() {
 
         <Route
           path="/team/create"
-          element={<CreateTeam />}
+          element={
+            <ProtectedRoute>
+              <CreateTeam />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/team/find"
+          element={
+            <ProtectedRoute>
+              <FindTeam />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/team/my-team"
-          element={<MyTeam />}
+          element={
+            <ProtectedRoute>
+              <MyTeam />
+            </ProtectedRoute>
+          }
         />
 
         <Route

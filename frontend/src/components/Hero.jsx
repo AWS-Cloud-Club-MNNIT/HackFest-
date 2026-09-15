@@ -24,7 +24,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[90vh] flex-col justify-center overflow-hidden bg-[#080b16] pt-32 pb-24 sm:pt-40 sm:pb-32"
+      className="relative flex min-h-[85vh] flex-col justify-center overflow-hidden bg-[#080b16] pt-16 pb-16 sm:pt-20 sm:pb-20"
     >
       {/* Hogwarts Castle Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -66,27 +66,45 @@ export default function Hero() {
         animate="show"
         className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 text-center sm:px-6"
       >
-        {/* Organizer Badge */}
+        {/* Organizer Logo & Presents Tag */}
         <motion.div
           variants={staggerItem}
-          className="inline-flex items-center gap-2.5 rounded-full border border-[#d4af37]/80 bg-[#080b16]/90 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#f4e8c1] shadow-[0_0_25px_rgba(212,175,55,0.4)] backdrop-blur-md"
+          className="flex flex-col items-center gap-2"
         >
-          <svg
-            className="h-4 w-4 text-[#d4af37]"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
-          </svg>
+          <img
+            src="/images/aws_mnnit_logo.png"
+            alt="AWS Student Builder Group • MNNIT Allahabad"
+            className="h-16 sm:h-24 md:h-28 w-auto max-w-[320px] sm:max-w-[460px] object-contain drop-shadow-[0_6px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              if (e.currentTarget.nextElementSibling) {
+                e.currentTarget.nextElementSibling.classList.remove('hidden')
+                e.currentTarget.nextElementSibling.classList.add('flex')
+              }
+            }}
+          />
+          {/* Fallback badge until user uploads logo image */}
+          <div className="hidden items-center gap-2 rounded-full border border-[#d4af37]/80 bg-[#080b16]/90 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#f4e8c1] shadow-[0_0_25px_rgba(212,175,55,0.4)] backdrop-blur-md">
+            <svg className="h-4 w-4 text-[#d4af37]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
+            </svg>
+            <span>AWS STUDENT BUILDER GROUP • MNNIT ALLAHABAD</span>
+          </div>
 
-          <span>AWS STUDENT BUILDER GROUP • MNNIT ALLAHABAD</span>
+          <div className="mt-1 flex items-center justify-center gap-3">
+            <span className="h-[1px] w-8 sm:w-14 bg-gradient-to-r from-transparent via-[#d4af37]/60 to-[#d4af37]" />
+            <span className="font-display text-xs sm:text-sm font-bold tracking-[0.3em] text-[#f4e8c1] uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+              P R E S E N T S
+            </span>
+            <span className="h-[1px] w-8 sm:w-14 bg-gradient-to-l from-transparent via-[#d4af37]/60 to-[#d4af37]" />
+          </div>
         </motion.div>
-        
+
         <motion.img
           variants={staggerItem}
           src="/images/hackfest/hackfest_logo.png"
           alt="HackFest 1.0"
-          className="mt-6 w-64 sm:w-80 md:w-[420px] lg:w-[500px] h-auto object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.9)]"
+          className="mt-4 w-64 sm:w-80 md:w-[420px] lg:w-[500px] h-auto object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.9)]"
         />
 
         {/* Theme Label */}

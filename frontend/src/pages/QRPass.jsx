@@ -77,7 +77,7 @@ export default function QRPass() {
           
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8c6a15] via-[#e5c158] to-[#8c6a15]"></div>
 
-          <h2 className="text-3xl font-bold font-display text-[#24170f] mt-4 mb-1">
+          <h2 className="font-harry text-4xl sm:text-5xl font-bold text-[#24170f] mt-4 mb-1">
             {team.name}
           </h2>
           <p className="text-sm font-semibold text-[#8c6a15] uppercase tracking-widest mb-8">

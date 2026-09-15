@@ -6,7 +6,9 @@ import {
   removeMember, 
   leaveTeam, 
   getQRCode, 
-  scanQR 
+  scanQR,
+  toggleLookingForTeammates,
+  getAvailableTeams
 } from '../controllers/team.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -15,8 +17,14 @@ const router = express.Router();
 // POST: Create a team
 router.post('/', protect, createTeam);
 
+// GET: View available teams
+router.get('/available', protect, getAvailableTeams);
+
 // GET: View team details
 router.get('/:id', protect, getTeam);
+
+// PATCH: Toggle looking for teammates (Leader only)
+router.patch('/:id/looking-for-teammates', protect, toggleLookingForTeammates);
 
 // PATCH: Change domain (Leader only)
 router.patch('/:id/domain', protect, updateDomain);

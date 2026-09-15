@@ -53,7 +53,7 @@ export default function PastEvents() {
   }
 
   return (
-    <section id="past-events" className="relative overflow-hidden bg-[#080b16] py-24 sm:py-32 border-t border-[#d4af37]/20">
+    <section id="express" className="relative overflow-hidden bg-[#080b16] py-24 sm:py-32 border-t border-[#d4af37]/20">
       {/* Real Vivid Hogwarts Express Steam Train Background Image */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <motion.img

@@ -59,15 +59,15 @@ const Login = () => {
 
         {/* Heading */}
         <div className="text-center mb-8">
-          <p className="text-[#d4af37] tracking-[0.35em] text-sm uppercase mb-3">
-            HackFest 1.0
+          <p className="font-display font-bold text-[#d4af37] tracking-[0.35em] text-xs sm:text-sm uppercase mb-2">
+            HACKFEST 1.0
           </p>
 
-          <h1 className="text-4xl font-bold text-[#d4af37]">
+          <h1 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             Welcome Back
           </h1>
 
-          <p className="text-gray-400 mt-3">
+          <p className="font-serif text-base sm:text-lg text-[#e8d7b5]/90 mt-2">
             Enter the magical world of innovation
           </p>
         </div>

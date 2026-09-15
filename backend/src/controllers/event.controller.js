@@ -26,6 +26,29 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
+// GET ACTIVE EVENT
+export const getActiveEvent = async (req, res) => {
+  try {
+    const event = await Event.findOne({ isActive: true }).sort({ createdAt: -1 });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "No active event found",
+      });
+    }
+
+    res.status(200).json(event);
+  } catch (error) {
+    console.error("Get active event error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch active event",
+      error: error.message,
+    });
+  }
+};
+
 // GET EVENT BY ID
 export const getEventById = async (req, res) => {
   try {

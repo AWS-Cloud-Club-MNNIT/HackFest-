@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
@@ -12,9 +12,13 @@ export default function CreateTeam() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const [searchParams] = useSearchParams();
+  const preselectedDomain = searchParams.get("domain") || "";
+
   const [formData, setFormData] = useState({
     name: "",
-    domain: "",
+    domain: preselectedDomain,
+    lookingForTeammates: true,
   });
 
   // Verify Auth & Fetch Event
@@ -58,6 +62,7 @@ export default function CreateTeam() {
         name: formData.name,
         domain: formData.domain,
         eventId: event._id,
+        lookingForTeammates: formData.lookingForTeammates,
       });
       toast.success("Team forged successfully! Welcome Leader.");
       navigate("/team/my-team");
@@ -83,10 +88,10 @@ export default function CreateTeam() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-10 text-center">
           <Wand2 className="w-12 h-12 text-[#d4af37] mx-auto mb-4" />
-          <h2 className="text-4xl font-bold font-display text-[#d4af37]">
+          <h2 className="font-harry text-5xl sm:text-6xl font-bold text-[#f4e8c1] tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             Forge Your Guild
           </h2>
-          <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+          <p className="font-serif text-base sm:text-lg text-[#e8d7b5]/90 mt-2 max-w-xl mx-auto">
             Assemble your team and choose your house. As the creator, you will be the Team Leader with exclusive powers to manage invites and final submissions.
           </p>
         </div>
@@ -115,9 +120,14 @@ export default function CreateTeam() {
 
           {/* Domain Selection */}
           <div className="mb-8">
-            <label className="block text-[#d4af37] font-semibold mb-4">
+            <label className="block text-[#d4af37] font-semibold mb-2">
               Select Your Domain (House)
             </label>
+            {preselectedDomain && (
+              <p className="text-gray-400 text-sm mb-4">
+                You selected <strong>{preselectedDomain}</strong> from the dashboard. You can change it below if needed.
+              </p>
+            )}
             
             {!event?.domains || event.domains.length === 0 ? (
               <p className="text-red-400 text-sm">No domains configured by organizer.</p>
@@ -141,6 +151,27 @@ export default function CreateTeam() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Looking for Teammates Toggle */}
+          <div className="mb-8 flex items-center justify-between bg-[#10182b] p-4 rounded-xl border border-[#d4af37]/20">
+            <div>
+              <label className="block text-[#d4af37] font-semibold">
+                Looking for Teammates
+              </label>
+              <p className="text-sm text-gray-400 mt-1">
+                If enabled, your team will appear in the available teams list for others to request to join.
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={formData.lookingForTeammates}
+                onChange={(e) => setFormData({ ...formData, lookingForTeammates: e.target.checked })}
+              />
+              <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#d4af37]"></div>
+            </label>
           </div>
 
           <div className="pt-4 border-t border-[#d4af37]/20">
