@@ -96,7 +96,16 @@ export const acceptInvite = async (req, res) => {
     }
 
     team.members.push(req.user._id);
-    
+
+    // If this user had previously left/been removed from this same team,
+    // mark that history as resolved (rejoined) rather than leaving it
+    // looking like an unresolved quit in the Super Admin panel.
+    team.memberHistory.forEach((h) => {
+      if (h.userId.toString() === req.user._id.toString() && !h.rejoined) {
+        h.rejoined = true;
+      }
+    });
+
     if (team.members.length >= team.eventId.teamSizeMax) {
       team.status = 'complete';
       if (!team.qrToken) {

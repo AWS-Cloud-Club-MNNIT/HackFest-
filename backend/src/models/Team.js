@@ -48,7 +48,35 @@ const teamSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
       // Super-admin can force-lock a team regardless of deadline
-    }
+    },
+    // Audit trail of members who left or were removed from this team.
+    // Kept even after the member is no longer in `members`, so Super Admin
+    // can see quit/removal history. The user's own profile (User doc) is
+    // never deleted on leave/removal, so if they rejoin (this team or a
+    // new one) their data is intact — this array is purely historical log.
+    memberHistory: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        name: String,   // snapshot at time of event, in case user is later deleted entirely
+        email: String,
+        action: {
+          type: String,
+          enum: ['left', 'removed'],
+        },
+        at: {
+          type: Date,
+          default: Date.now,
+        },
+        rejoined: {
+          type: Boolean,
+          default: false,
+          // set true if this user is added back to this team afterwards
+        },
+      },
+    ],
   },
   {
     timestamps: true, // Automatically creates createdAt and updatedAt
