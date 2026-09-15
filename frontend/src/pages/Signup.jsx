@@ -2,7 +2,36 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, BookOpen, Users, CheckCircle2 } from "lucide-react";
+import { 
+  User, 
+  BookOpen, 
+  CheckCircle2, 
+  Mail, 
+  Phone, 
+  Lock, 
+  Building2, 
+  GraduationCap, 
+  Calendar, 
+  Code2, 
+  ChevronRight,
+  ShieldCheck,
+  AlertCircle
+} from "lucide-react";
+
+// Reusable input wrapper component for consistent styling
+const InputWrapper = ({ icon: Icon, label, children }) => (
+  <div className="relative group">
+    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1 group-focus-within:text-[#d4af37] transition-colors">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#d4af37] transition-colors">
+        <Icon className="w-5 h-5" />
+      </div>
+      {children}
+    </div>
+  </div>
+);
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -11,12 +40,12 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
     phone: "",
     college: "",
     branch: "",
     year: "",
     skills: "",
+    password: "",
   });
 
   const [error, setError] = useState("");
@@ -27,13 +56,19 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
     });
+    // Clear error on typing
+    if (error) setError("");
   };
 
   const nextStep = () => {
     setError("");
     if (step === 1) {
-      if (!formData.name || !formData.email || !formData.password || !formData.phone) {
-        return setError("Please fill in all account details");
+      if (!formData.name || !formData.email || !formData.phone) {
+        return setError("Please fill in all personal details.");
+      }
+    } else if (step === 2) {
+      if (!formData.college || !formData.branch || !formData.year) {
+        return setError("Please fill in all academic details.");
       }
     }
     setStep(step + 1);
@@ -46,10 +81,13 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (step !== 2) return;
+    if (step !== 3) return;
 
-    if (!formData.college || !formData.branch || !formData.year) {
-      return setError("Please fill in all academic details");
+    if (!formData.password) {
+      return setError("Please enter a secure password.");
+    }
+    if (formData.password.length < 6) {
+      return setError("Password must be at least 6 characters long.");
     }
 
     setError("");
@@ -77,53 +115,80 @@ const Signup = () => {
         navigate("/dashboard");
       }
     } catch (error) {
-      setError(error.response?.data?.message || "Signup failed");
+      setError(error.response?.data?.message || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyles = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 focus:bg-white/10 transition-all outline-none backdrop-blur-md";
+
+  const inputStyles = "w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#101522]/80 border border-white/10 text-white placeholder-gray-600 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 focus:bg-[#101522] transition-all outline-none backdrop-blur-md shadow-inner";
+  const selectStyles = `${inputStyles} appearance-none [&>option]:bg-[#101522] [&>option]:text-white`;
 
   return (
     <div className="min-h-screen bg-[#05070f] text-white flex flex-col md:flex-row">
       
-      {/* Left Banner Section (Unstop style side panel) */}
-      <div className="hidden md:flex md:w-1/3 lg:w-[40%] bg-gradient-to-b from-[#1a1610] to-[#05070f] border-r border-white/5 p-12 flex-col relative overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[40%] bg-[#d4af37]/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* Left Banner Section */}
+      <div className="hidden md:flex md:w-1/3 lg:w-[45%] bg-gradient-to-br from-[#0c101a] via-[#05070f] to-[#1a1405] border-r border-white/5 p-12 lg:p-16 flex-col relative overflow-hidden justify-between">
+        {/* Ambient Magic Glows */}
+        <div className="absolute top-[-20%] left-[-20%] w-[100%] h-[60%] bg-[#d4af37]/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[50%] bg-[#5c3b80]/15 rounded-full blur-[120px] pointer-events-none" />
         
-        <div className="relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="font-display px-3.5 py-1 text-xs tracking-[0.25em] font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 shadow-[0_0_15px_rgba(212,175,55,0.15)] mb-6 inline-block">
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-5 pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col h-full justify-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <span className="font-display px-4 py-1.5 text-xs tracking-[0.25em] font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 shadow-[0_0_20px_rgba(212,175,55,0.15)] mb-8 inline-block">
               HACKFEST REGISTRATION
             </span>
-            <h1 className="font-harry text-5xl lg:text-6xl font-bold text-[#f4e8c1] mb-4 tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
-              Begin Your Journey
+            <h1 className="font-harry text-6xl lg:text-7xl font-bold text-[#f4e8c1] mb-6 tracking-wide drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] leading-tight">
+              Begin Your<br/>Journey
             </h1>
-            <p className="font-serif text-lg leading-relaxed text-[#e8d7b5]/85">
-              Create an account to join the event, form your team, and participate in the ultimate challenge.
+            <p className="font-serif text-xl lg:text-2xl leading-relaxed text-[#e8d7b5]/80 max-w-md">
+              Create an account to join the event, discover your house, and build something extraordinary.
             </p>
           </motion.div>
 
-          {/* Progress Steps Indicator */}
-          <div className="mt-16 space-y-8">
-            <div className={`flex items-center gap-4 transition-all ${step >= 1 ? 'opacity-100' : 'opacity-40'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${step > 1 ? 'bg-[#d4af37] border-[#d4af37] text-black' : step === 1 ? 'border-[#d4af37] text-[#d4af37]' : 'border-gray-600 text-gray-600'}`}>
-                {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : <User className="w-4 h-4" />}
+          {/* Vertical Progress Indicator */}
+          <div className="mt-20 space-y-8 relative">
+            {/* Connecting line */}
+            <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-800 rounded-full z-0">
+              <motion.div 
+                className="w-full bg-[#d4af37] rounded-full" 
+                initial={{ height: "0%" }}
+                animate={{ height: step === 1 ? "15%" : step === 2 ? "50%" : "100%" }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
+            </div>
+
+            <div className={`flex items-start gap-5 relative z-10 transition-all duration-500 ${step >= 1 ? 'opacity-100' : 'opacity-40'}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors duration-500 bg-[#05070f] ${step > 1 ? 'border-[#d4af37] text-[#d4af37]' : step === 1 ? 'border-[#d4af37] text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.3)]' : 'border-gray-700 text-gray-600'}`}>
+                {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : <span className="font-bold font-display">01</span>}
               </div>
-              <div>
-                <p className="font-bold text-white">Account Details</p>
-                <p className="text-sm text-gray-400">Basic information</p>
+              <div className="pt-1">
+                <p className={`font-bold text-lg ${step >= 1 ? 'text-white' : 'text-gray-400'}`}>Personal Details</p>
+                <p className="text-sm text-gray-500">How we can reach you</p>
               </div>
             </div>
 
-            <div className={`flex items-center gap-4 transition-all ${step >= 2 ? 'opacity-100' : 'opacity-40'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${step === 2 ? 'border-[#d4af37] text-[#d4af37]' : 'border-gray-600 text-gray-600'}`}>
-                <BookOpen className="w-4 h-4" />
+            <div className={`flex items-start gap-5 relative z-10 transition-all duration-500 ${step >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors duration-500 bg-[#05070f] ${step > 2 ? 'border-[#d4af37] text-[#d4af37]' : step === 2 ? 'border-[#d4af37] text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.3)]' : 'border-gray-700 text-gray-600'}`}>
+                {step > 2 ? <CheckCircle2 className="w-5 h-5" /> : <span className="font-bold font-display">02</span>}
               </div>
-              <div>
-                <p className="font-bold text-white">Academic Profile</p>
-                <p className="text-sm text-gray-400">College and skills</p>
+              <div className="pt-1">
+                <p className={`font-bold text-lg ${step >= 2 ? 'text-white' : 'text-gray-400'}`}>Academic Profile</p>
+                <p className="text-sm text-gray-500">Your background & skills</p>
+              </div>
+            </div>
+
+            <div className={`flex items-start gap-5 relative z-10 transition-all duration-500 ${step >= 3 ? 'opacity-100' : 'opacity-40'}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors duration-500 bg-[#05070f] ${step === 3 ? 'border-[#d4af37] text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.3)]' : 'border-gray-700 text-gray-600'}`}>
+                <span className="font-bold font-display">03</span>
+              </div>
+              <div className="pt-1">
+                <p className={`font-bold text-lg ${step >= 3 ? 'text-white' : 'text-gray-400'}`}>Account Setup</p>
+                <p className="text-sm text-gray-500">Secure your profile</p>
               </div>
             </div>
           </div>
@@ -131,39 +196,48 @@ const Signup = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center relative">
-        <div className="max-w-xl w-full mx-auto">
+      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center relative overflow-y-auto">
+        <div className="max-w-md w-full mx-auto">
           
+          {/* Mobile Progress Text */}
+          <div className="md:hidden mb-10 text-center">
+             <span className="font-display px-3 py-1 text-[10px] tracking-widest font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 mb-4 inline-block">
+              Step {step} of 3
+            </span>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {step === 1 ? "Personal Details" : step === 2 ? "Academic Profile" : "Account Setup"}
+            </h2>
+          </div>
+
           <form onSubmit={handleSubmit} className="relative">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" custom={step}>
               
-              {/* STEP 1: Account Details */}
+              {/* STEP 1: Personal Details */}
               {step === 1 && (
                 <motion.div
                   key="step1"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <h2 className="text-2xl font-bold text-white mb-6">Account Details</h2>
+                  <div className="hidden md:block mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2">Who are you?</h2>
+                    <p className="text-gray-400">Let's start with your basic information.</p>
+                  </div>
                   
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Full Name *</label>
+                  <InputWrapper icon={User} label="Full Name *">
                     <input name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" required className={inputStyles} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Email *</label>
+                  </InputWrapper>
+                  
+                  <InputWrapper icon={Mail} label="Email Address *">
                     <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@university.edu" required className={inputStyles} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Password *</label>
-                    <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={inputStyles} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Phone *</label>
-                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 234 567 8900" required className={inputStyles} />
-                  </div>
+                  </InputWrapper>
+                  
+                  <InputWrapper icon={Phone} label="Phone Number *">
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 234 567 8900" required className={inputStyles} />
+                  </InputWrapper>
                 </motion.div>
               )}
 
@@ -174,68 +248,138 @@ const Signup = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <h2 className="text-2xl font-bold text-white mb-6">Academic Profile</h2>
+                  <div className="hidden md:block mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2">Your Background</h2>
+                    <p className="text-gray-400">Tell us about your studies and skills.</p>
+                  </div>
                   
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">College *</label>
-                    <input name="college" value={formData.college} onChange={handleChange} placeholder="Your University" required className={inputStyles} />
+                  <InputWrapper icon={Building2} label="College / University *">
+                    <input name="college" value={formData.college} onChange={handleChange} placeholder="Institute of Technology" required className={inputStyles} />
+                  </InputWrapper>
+                  
+                  <InputWrapper icon={GraduationCap} label="Branch / Department *">
+                    <input name="branch" value={formData.branch} onChange={handleChange} placeholder="Computer Science" required className={inputStyles} />
+                  </InputWrapper>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputWrapper icon={Calendar} label="Year of Study *">
+                      <select name="year" value={formData.year} onChange={handleChange} required className={selectStyles}>
+                        <option value="" disabled>Select</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                        <option value="5">5th+ Year</option>
+                      </select>
+                    </InputWrapper>
+                    <div className="flex flex-col justify-end">
+                      {/* Empty space or additional small field if needed */}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Branch *</label>
-                    <input name="branch" value={formData.branch} onChange={handleChange} placeholder="e.g. Computer Science" required className={inputStyles} />
+
+                  <InputWrapper icon={Code2} label="Skills (Comma separated)">
+                    <input name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Node.js, Design" className={inputStyles} />
+                  </InputWrapper>
+                </motion.div>
+              )}
+
+              {/* STEP 3: Account Setup */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
+                  <div className="hidden md:block mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2">Secure Account</h2>
+                    <p className="text-gray-400">Set a password to complete registration.</p>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Year *</label>
-                    <select name="year" value={formData.year} onChange={handleChange} required className={`${inputStyles} appearance-none [&>option]:bg-[#101522] [&>option]:text-white`}>
-                      <option value="" disabled>Select Year</option>
-                      <option value="1">1st Year</option>
-                      <option value="2">2nd Year</option>
-                      <option value="3">3rd Year</option>
-                      <option value="4">4th Year</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Skills (Comma separated)</label>
-                    <input name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Node.js, UI/UX" className={inputStyles} />
+                  
+                  <InputWrapper icon={Lock} label="Password *">
+                    <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={inputStyles} />
+                  </InputWrapper>
+                  
+                  <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-xl p-4 flex gap-3 mt-4">
+                    <ShieldCheck className="w-5 h-5 text-[#d4af37] shrink-0" />
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      By completing registration, you agree to the HackFest Terms of Service and Privacy Policy. You will be able to create or join a team after confirming your account.
+                    </p>
                   </div>
                 </motion.div>
               )}
 
             </AnimatePresence>
 
-            {/* Error Message */}
-            {error && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg">
-                {error}
-              </motion.div>
-            )}
+            {/* Error Message with Shake Animation */}
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }} 
+                  animate={{ opacity: 1, y: 0, scale: 1 }} 
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="mt-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <p>{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex gap-4 mt-8 pt-6 border-t border-white/5">
+            <div className="flex gap-4 mt-10 pt-8 border-t border-white/5">
               {step > 1 && (
-                <button type="button" onClick={prevStep} className="px-6 py-3 rounded-xl border border-white/10 text-white font-semibold hover:bg-white/5 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={prevStep} 
+                  className="px-6 py-4 rounded-xl bg-[#101522] border border-white/10 text-white font-bold hover:bg-white/5 hover:border-white/20 transition-all"
+                >
                   Back
                 </button>
               )}
               
-              {step < 2 ? (
-                <button type="button" onClick={nextStep} className="flex-1 bg-[#d4af37] text-black font-bold py-3 rounded-xl hover:bg-[#e6c65c] transition-colors shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                  Continue
+              {step < 3 ? (
+                <button 
+                  type="button" 
+                  onClick={nextStep} 
+                  className="flex-1 flex items-center justify-center gap-2 bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
+                >
+                  Continue <ChevronRight className="w-5 h-5" />
                 </button>
               ) : (
-                <button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-[#e6c65c] to-[#d4af37] text-black font-bold py-3 rounded-xl hover:from-[#f0d473] hover:to-[#e6c65c] transition-all shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-70 disabled:cursor-not-allowed">
-                  {loading ? "Registering..." : "Complete Registration"}
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="flex-1 relative group overflow-hidden bg-gradient-to-r from-[#e6c65c] to-[#d4af37] text-black font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+                >
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Complete Registration"
+                    )}
+                  </span>
                 </button>
               )}
             </div>
             
           </form>
 
-          <div className="text-center mt-8 text-sm text-gray-400">
+          <div className="text-center mt-8 text-sm text-gray-500">
             Already have an account?{" "}
-            <button onClick={() => navigate("/login")} className="text-[#d4af37] font-semibold hover:text-white transition-colors">
+            <button onClick={() => navigate("/login")} className="text-[#d4af37] font-bold hover:text-white transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-[#d4af37] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-0.5">
               Log in here
             </button>
           </div>

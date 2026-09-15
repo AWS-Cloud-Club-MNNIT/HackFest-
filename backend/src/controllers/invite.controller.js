@@ -62,12 +62,12 @@ export const getReceivedInvites = async (req, res) => {
       .populate({
         path: 'teamId',
         populate: [
-          { path: 'leaderId', select: '-passwordHash' },
-          { path: 'members', select: '-passwordHash' },
+          { path: 'leaderId', select: '-passwordHash -email -phone' },
+          { path: 'members', select: '-passwordHash -email -phone' },
           { path: 'eventId', select: 'name teamSizeMax' }
         ]
       })
-      .populate('fromUserId', '-passwordHash');
+      .populate('fromUserId', '-passwordHash -email -phone');
     res.status(200).json(invites);
   } catch (error) {
     res.status(500).json({ message: error.message });

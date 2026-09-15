@@ -3,28 +3,31 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
-import { Users, Search, Target, ShieldPlus, Eye } from "lucide-react";
+import { Users, Search, Target, ShieldPlus, Eye, Check } from "lucide-react";
 import DetailModal from "../components/common/DetailModal";
 import TeamDetail from "../components/TeamDetail";
+import { useAuthStore } from "../store/useAuthStore";
 
 export default function FindTeam() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, fetchUser } = useAuthStore();
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [requesting, setRequesting] = useState(null);
+  const [requestedTeamIds, setRequestedTeamIds] = useState(new Set());
   
   const [selectedTeam, setSelectedTeam] = useState(null);
 
   useEffect(() => {
     const init = async () => {
       try {
-        const authRes = await API.get("/auth/me");
-        const userData = authRes.data.user;
-        setUser(userData);
+        let fetchedUser = user;
+        if (!fetchedUser) {
+          fetchedUser = await fetchUser();
+        }
 
-        if (userData.teamId) {
+        if (fetchedUser.teamId) {
           toast.error("You are already in a team!");
           navigate("/team/my-team");
           return;
@@ -33,7 +36,7 @@ export default function FindTeam() {
         const teamsRes = await API.get("/teams/available");
         setTeams(teamsRes.data);
       } catch (error) {
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 || error.status === 401) {
           navigate("/login");
         } else {
           toast.error("Failed to load available teams");
@@ -43,13 +46,14 @@ export default function FindTeam() {
       }
     };
     init();
-  }, [navigate]);
+  }, [navigate, fetchUser]);
 
   const handleRequestJoin = async (teamId) => {
     setRequesting(teamId);
     try {
       await API.post("/join-requests", { teamId });
       toast.success("Join request sent successfully!");
+      setRequestedTeamIds(prev => new Set(prev).add(teamId));
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send request");
     } finally {
@@ -142,10 +146,14 @@ export default function FindTeam() {
                     </button>
                     <button
                       onClick={() => handleRequestJoin(team._id)}
-                      disabled={requesting === team._id}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition disabled:opacity-50 text-sm"
+                      disabled={requesting === team._id || requestedTeamIds.has(team._id)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold transition disabled:opacity-50 text-sm ${
+                        requestedTeamIds.has(team._id) 
+                          ? 'bg-green-600/20 text-green-400 border border-green-500/30 hover:bg-green-600/30' 
+                          : 'bg-blue-600 hover:bg-blue-500 text-white'
+                      }`}
                     >
-                      {requesting === team._id ? "Sending..." : "Request"}
+                      {requesting === team._id ? "Sending..." : requestedTeamIds.has(team._id) ? <><Check className="w-4 h-4"/> Requested</> : "Request"}
                     </button>
                   </div>
                 </div>
@@ -166,10 +174,14 @@ export default function FindTeam() {
             actions={
               <button
                 onClick={() => handleRequestJoin(selectedTeam._id)}
-                disabled={requesting === selectedTeam._id}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition disabled:opacity-50"
+                disabled={requesting === selectedTeam._id || requestedTeamIds.has(selectedTeam._id)}
+                className={`px-6 py-2 font-bold rounded-lg transition disabled:opacity-50 flex items-center gap-2 ${
+                  requestedTeamIds.has(selectedTeam._id)
+                    ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                }`}
               >
-                {requesting === selectedTeam._id ? "Sending Request..." : "Request to Join Team"}
+                {requesting === selectedTeam._id ? "Sending Request..." : requestedTeamIds.has(selectedTeam._id) ? <><Check className="w-4 h-4"/> Requested</> : "Request to Join Team"}
               </button>
             }
           />

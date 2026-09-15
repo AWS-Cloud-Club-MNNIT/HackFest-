@@ -57,7 +57,25 @@ export const getTeam = async (req, res) => {
       .populate('leaderId', '-passwordHash')
       .populate('eventId', 'name teamSizeMax registrationDeadline');
     if (!team) return res.status(404).json({ message: 'Team not found' });
-    res.status(200).json(team);
+
+    // Security check: Only allow actual team members or super_admin to see email and phone
+    const isMember = team.members.some(member => member._id.toString() === req.user._id.toString());
+    const isSuperAdmin = req.user.role === 'super_admin';
+
+    const teamObj = team.toObject();
+
+    if (!isMember && !isSuperAdmin) {
+      teamObj.members = teamObj.members.map(member => {
+        const { email, phone, ...safeMember } = member;
+        return safeMember;
+      });
+      if (teamObj.leaderId) {
+        const { email, phone, ...safeLeader } = teamObj.leaderId;
+        teamObj.leaderId = safeLeader;
+      }
+    }
+
+    res.status(200).json(teamObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -271,11 +289,44 @@ export const getAvailableTeams = async (req, res) => {
       $expr: { $lt: [{ $size: "$members" }, 4] },
       status: 'forming'
     })
-      .populate('leaderId', '-passwordHash')
-      .populate('members', '-passwordHash')
+      .populate('leaderId', '-passwordHash -email -phone')
+      .populate('members', '-passwordHash -email -phone')
       .populate('eventId', 'name teamSizeMax');
     
     res.status(200).json(teams);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PATCH /api/teams/:id/toggle-status
+export const toggleStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const team = await Team.findById(id).populate('eventId');
+    
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.leaderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only team leader can change status' });
+    }
+    
+    if (team.status === 'forming') {
+      const minSize = team.eventId.teamSizeMin || 2;
+      const maxSize = team.eventId.teamSizeMax || 4;
+      const currentSize = team.members.length;
+      
+      if (currentSize < minSize || currentSize > maxSize) {
+         return res.status(400).json({ message: `Team size must be between ${minSize} and ${maxSize} to complete.` });
+      }
+      
+      team.status = 'complete';
+      team.lookingForTeammates = false; // Disable looking for teammates
+    } else {
+      team.status = 'forming';
+    }
+    
+    await team.save();
+    res.status(200).json({ message: `Team is now ${team.status}`, team });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

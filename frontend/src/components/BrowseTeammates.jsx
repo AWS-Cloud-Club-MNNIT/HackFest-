@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { MailPlus, Eye } from "lucide-react";
+import { MailPlus, Eye, Check } from "lucide-react";
 import API from "../services/api";
 import DetailModal from "./common/DetailModal";
 import ParticipantDetail from "./ParticipantDetail";
+import { useAuthStore } from "../store/useAuthStore";
 
 const BrowseTeammates = () => {
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [name, setName] = useState("");
   const [skill, setSkill] = useState("");
   const [branch, setBranch] = useState("");
   const [college, setCollege] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [invitedUserIds, setInvitedUserIds] = useState(new Set());
 
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -46,27 +48,26 @@ const BrowseTeammates = () => {
 
   const [isLeader, setIsLeader] = useState(false);
 
-  const fetchCurrentUserAndTeam = async () => {
+  const fetchTeam = async () => {
     try {
-      const authRes = await API.get("/auth/me");
-      const user = authRes.data.user;
-      setCurrentUser(user);
-
-      if (user.teamId) {
-        const teamRes = await API.get(`/teams/${user.teamId}`);
-        if (teamRes.data.leaderId._id === user._id) {
+      if (currentUser?.teamId) {
+        const teamRes = await API.get(`/teams/${currentUser.teamId}`);
+        if (teamRes.data.leaderId._id === currentUser._id || teamRes.data.leaderId === currentUser._id) {
           setIsLeader(true);
         }
       }
     } catch (error) {
-      // Not logged in or no team, that's fine
+      // ignore
     }
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchCurrentUserAndTeam();
   }, []);
+
+  useEffect(() => {
+    fetchTeam();
+  }, [currentUser]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -84,6 +85,7 @@ const BrowseTeammates = () => {
     try {
       await API.post("/invites", { teamId: currentUser.teamId, toUserId });
       toast.success("Invite sent successfully!");
+      setInvitedUserIds(prev => new Set(prev).add(toUserId));
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send invite");
     }
@@ -231,10 +233,14 @@ const BrowseTeammates = () => {
               {isLeader && (
                 <button
                   onClick={() => handleInvite(u._id)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#d4af37] text-black font-bold hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition text-sm"
+                  disabled={invitedUserIds.has(u._id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold transition text-sm disabled:opacity-50 ${
+                    invitedUserIds.has(u._id)
+                      ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                      : 'bg-[#d4af37] text-black hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+                  }`}
                 >
-                  <MailPlus className="w-4 h-4" />
-                  Invite
+                  {invitedUserIds.has(u._id) ? <><Check className="w-4 h-4" /> Invited</> : <><MailPlus className="w-4 h-4" /> Invite</>}
                 </button>
               )}
             </div>
@@ -259,9 +265,14 @@ const BrowseTeammates = () => {
                     handleInvite(selectedUser._id);
                     setSelectedUser(null);
                   }}
-                  className="px-6 py-2 bg-[#d4af37] text-black font-bold rounded-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition"
+                  disabled={invitedUserIds.has(selectedUser._id)}
+                  className={`px-6 py-2 font-bold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 ${
+                    invitedUserIds.has(selectedUser._id)
+                      ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                      : 'bg-[#d4af37] text-black hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+                  }`}
                 >
-                  Invite to Team
+                  {invitedUserIds.has(selectedUser._id) ? <><Check className="w-4 h-4" /> Invited</> : "Invite to Team"}
                 </button>
               )}
             </>

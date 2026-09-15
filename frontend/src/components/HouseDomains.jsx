@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import Reveal from './common/Reveal'
 
 // SVG Crest Icons for each House (Compact size)
-const HouseEmblems = {
+export const HouseEmblems = {
   Gryffindor: (
     <svg viewBox="0 0 64 64" fill="none" className="w-9 h-9 sm:w-10 sm:h-10">
       <path
@@ -96,7 +96,7 @@ const HouseEmblems = {
   ),
 }
 
-const HOUSES_DATA = [
+export const HOUSES_DATA = [
   {
     id: 'gryffindor',
     name: 'Gryffindor',
