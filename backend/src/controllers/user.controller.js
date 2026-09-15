@@ -68,6 +68,7 @@ export const getUsersLookingForTeam = async (req, res) => {
       lookingForTeam: true,
       isBlocked: false,
       teamId: null,
+      role: "participant",
     };
 
     if (name) {
