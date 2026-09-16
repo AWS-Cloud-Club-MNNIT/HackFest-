@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import API from "../../services/api";
@@ -7,6 +7,11 @@ import TeamsTab from "./tabs/TeamsTab";
 import BroadCastTab from "./tabs/BroadCastTab";
 import EventsTab from "./tabs/EventsTab";
 import OverviewTab from "./tabs/OverviewTab";
+import SettingsTab from "./tabs/SettingsTab";
+
+import { Bell, LogOut } from "lucide-react";
+import { useNotificationStore } from "../../store/useNotificationStore";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const menuItems = [
   {
@@ -36,7 +41,9 @@ const menuItems = [
   },
 ];
 
-// removed emptyEvent
+// =============================================================
+// STAT CARD
+// =============================================================
 
 function StatCard({ icon, label, value, description }) {
   return (
@@ -86,6 +93,10 @@ function StatCard({ icon, label, value, description }) {
   );
 }
 
+// =============================================================
+// STATUS BADGE
+// =============================================================
+
 function StatusBadge({ status }) {
   const statusStyles = {
     draft: "bg-gray-500/10 text-gray-300 border-gray-500/20",
@@ -108,8 +119,34 @@ function StatusBadge({ status }) {
   );
 }
 
+// =============================================================
+// SUPER ADMIN DASHBOARD
+// =============================================================
+
 function SuperAdminDashboard() {
   const [activeMenu, setActiveMenu] = useState("overview");
+
+  // ===========================================================
+  // NOTIFICATIONS
+  // ===========================================================
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const notificationRef = useRef(null);
+  const profileRef = useRef(null);
+
+  const {
+    notifications,
+    unreadCount,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+  } = useNotificationStore();
+
+  // ===========================================================
+  // DASHBOARD STATE
+  // ===========================================================
 
   const [dashboard, setDashboard] = useState(null);
   const [events, setEvents] = useState([]);
@@ -120,11 +157,9 @@ function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Modals removed, handled by EventsTab
-
-  // =========================================================
+  // ===========================================================
   // FETCH DASHBOARD
-  // =========================================================
+  // ===========================================================
 
   const fetchDashboard = async () => {
     try {
@@ -143,9 +178,9 @@ function SuperAdminDashboard() {
     }
   };
 
-  // =========================================================
+  // ===========================================================
   // FETCH EVENTS
-  // =========================================================
+  // ===========================================================
 
   const fetchEvents = async () => {
     try {
@@ -163,31 +198,61 @@ function SuperAdminDashboard() {
     }
   };
 
-  // =========================================================
+  // ===========================================================
   // INITIAL LOAD
-  // =========================================================
+  // ===========================================================
 
   useEffect(() => {
     fetchDashboard();
     fetchEvents();
+    fetchNotifications();
   }, []);
 
-  // =========================================================
+  // ===========================================================
+  // CLOSE NOTIFICATION DROPDOWN WHEN CLICKING OUTSIDE
+  // ===========================================================
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setNotificationOpen(false);
+      }
+
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ===========================================================
   // REFRESH
-  // =========================================================
+  // ===========================================================
 
   const handleRefresh = async () => {
     await Promise.all([
       fetchDashboard(),
       fetchEvents(),
+      fetchNotifications(),
     ]);
 
     showSuccess("Dashboard refreshed");
   };
 
-  // =========================================================
+  // ===========================================================
   // SUCCESS MESSAGE
-  // =========================================================
+  // ===========================================================
 
   const showSuccess = (message) => {
     setSuccessMessage(message);
@@ -197,11 +262,9 @@ function SuperAdminDashboard() {
     }, 3000);
   };
 
-  // Event submission moved to EventsTab
-
-  // =========================================================
+  // ===========================================================
   // DELETE EVENT
-  // =========================================================
+  // ===========================================================
 
   const handleDeleteEvent = async (id) => {
     const confirmed = window.confirm(
@@ -211,8 +274,7 @@ function SuperAdminDashboard() {
     if (!confirmed) return;
 
     try {
-      const response = await API.delete(`/super-admin/events/${id}`);
-      const data = response.data;
+      await API.delete(`/super-admin/events/${id}`);
 
       await fetchEvents();
       await fetchDashboard();
@@ -224,9 +286,9 @@ function SuperAdminDashboard() {
     }
   };
 
-  // =========================================================
+  // ===========================================================
   // LOGOUT
-  // =========================================================
+  // ===========================================================
 
   const handleLogout = () => {
     /*
@@ -244,9 +306,9 @@ function SuperAdminDashboard() {
     window.location.href = "/";
   };
 
-  // =========================================================
+  // ===========================================================
   // FORMAT DATE
-  // =========================================================
+  // ===========================================================
 
   const formatDate = (date) => {
     if (!date) return "—";
@@ -258,9 +320,9 @@ function SuperAdminDashboard() {
     });
   };
 
-  // =========================================================
+  // ===========================================================
   // PAGE CONTENT
-  // =========================================================
+  // ===========================================================
 
   const renderContent = () => {
     if (activeMenu === "overview") {
@@ -283,8 +345,16 @@ function SuperAdminDashboard() {
       return <BroadCastTab />;
     }
 
+    if (activeMenu === "settings") {
+      return <SettingsTab />;
+    }
+
     return null;
   };
+
+  // ===========================================================
+  // RENDER
+  // ===========================================================
 
   return (
     <div className="hogwarts-background min-h-screen text-[#e8d7b5]">
@@ -334,11 +404,15 @@ function SuperAdminDashboard() {
           "
         >
           <div className="absolute bottom-0 left-[15%] h-[170px] w-[180px] bg-[#d8bd68]" />
+
           <div className="absolute bottom-0 left-[38%] h-[220px] w-[230px] bg-[#d8bd68]" />
+
           <div className="absolute bottom-0 right-[15%] h-[150px] w-[180px] bg-[#d8bd68]" />
 
           <div className="absolute bottom-[170px] left-[18%] h-[120px] w-[30px] bg-[#d8bd68]" />
+
           <div className="absolute bottom-[220px] left-[44%] h-[150px] w-[40px] bg-[#d8bd68]" />
+
           <div className="absolute bottom-[150px] right-[18%] h-[110px] w-[30px] bg-[#d8bd68]" />
         </div>
       </div>
@@ -364,9 +438,10 @@ function SuperAdminDashboard() {
               alt="AWS MNNIT Logo"
               className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
               onError={(e) => {
-                e.currentTarget.style.display = 'none'
+                e.currentTarget.style.display = "none";
               }}
             />
+
             <div>
               <p className="font-harry text-2xl font-bold tracking-wider text-[#f4e8c1]">
                 AWS SBG
@@ -378,8 +453,12 @@ function SuperAdminDashboard() {
             </div>
           </div>
 
-          {/* Right profile */}
+          {/* =================================================
+              RIGHT HEADER
+          ================================================= */}
+
           <div className="flex items-center gap-4">
+            {/* Refresh */}
             <button
               onClick={handleRefresh}
               className="
@@ -395,26 +474,313 @@ function SuperAdminDashboard() {
               ↻ Refresh
             </button>
 
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold text-[#e8d8ae]">
-                Administrator
-              </p>
+            {/* =================================================
+                NOTIFICATION BELL
+            ================================================= */}
 
-              <p className="text-[10px] uppercase tracking-wider text-[#68748b]">
-                Super Admin
-              </p>
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() =>
+                  setNotificationOpen((previous) => !previous)
+                }
+                className="
+                  relative flex h-10 w-10 items-center justify-center
+                  rounded-full
+                  border border-[#c9a646]/20
+                  bg-[#171d31]
+                  text-[#b9a66b]
+                  transition
+                  hover:border-[#c9a646]/50
+                  hover:text-[#e8d49d]
+                "
+                aria-label="Notifications"
+              >
+                <Bell size={18} />
+
+                {/* Unread badge */}
+                {unreadCount > 0 && (
+                  <span
+                    className="
+                      absolute -right-1 -top-1
+                      flex h-5 min-w-5 items-center justify-center
+                      rounded-full
+                      border-2 border-[#080d19]
+                      bg-red-500
+                      px-1
+                      text-[9px] font-bold text-white
+                    "
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* =================================================
+                  NOTIFICATION DROPDOWN
+              ================================================= */}
+
+              <AnimatePresence>
+                {notificationOpen && (
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.98,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.98,
+                    }}
+                    transition={{ duration: 0.15 }}
+                    className="
+                      absolute right-0 top-12 z-[100]
+                      w-[340px]
+                      overflow-hidden
+                      rounded-2xl
+                      border border-[#c9a646]/20
+                      bg-[#0b1220]
+                      shadow-[0_20px_70px_rgba(0,0,0,0.55)]
+                    "
+                  >
+                    {/* Dropdown Header */}
+                    <div
+                      className="
+                        flex items-center justify-between
+                        border-b border-white/5
+                        px-4 py-4
+                      "
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-[#e8d9b5]">
+                          Notifications
+                        </p>
+
+                        <p className="mt-1 text-[10px] text-[#68748a]">
+                          {unreadCount > 0
+                            ? `${unreadCount} unread notification${
+                                unreadCount > 1 ? "s" : ""
+                              }`
+                            : "You're all caught up"}
+                        </p>
+                      </div>
+
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="
+                            text-[10px]
+                            text-[#c9a646]
+                            transition
+                            hover:text-[#e8d49d]
+                          "
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notifications List */}
+                    <div className="max-h-[360px] overflow-y-auto">
+                      {!notifications ||
+                      notifications.length === 0 ? (
+                        <div className="px-6 py-12 text-center">
+                          <Bell
+                            size={28}
+                            className="mx-auto text-[#59657a]"
+                          />
+
+                          <p className="mt-3 text-sm text-[#8792a7]">
+                            No notifications
+                          </p>
+
+                          <p className="mt-1 text-[10px] text-[#59657a]">
+                            New notifications will appear here.
+                          </p>
+                        </div>
+                      ) : (
+                        notifications
+                          .slice(0, 10)
+                          .map((notification) => (
+                            <button
+                              key={
+                                notification._id ||
+                                notification.id
+                              }
+                              onClick={() => {
+                                if (!notification.read) {
+                                  markAsRead(
+                                    notification._id ||
+                                      notification.id
+                                  );
+                                }
+                              }}
+                              className={`
+                                flex w-full gap-3
+                                border-b border-white/[0.04]
+                                px-4 py-4
+                                text-left
+                                transition
+                                hover:bg-white/[0.03]
+                                ${
+                                  !notification.read
+                                    ? "bg-[#c9a646]/[0.04]"
+                                    : ""
+                                }
+                              `}
+                            >
+                              {/* Notification Icon */}
+                              <div
+                                className="
+                                  mt-0.5 flex h-8 w-8 shrink-0
+                                  items-center justify-center
+                                  rounded-lg
+                                  bg-[#c9a646]/10
+                                  text-[#d8bd68]
+                                "
+                              >
+                                <Bell size={14} />
+                              </div>
+
+                              {/* Notification Content */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="text-xs font-semibold text-[#dce2eb]">
+                                    {notification.title ||
+                                      "Notification"}
+                                  </p>
+
+                                  {!notification.read && (
+                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-red-400" />
+                                  )}
+                                </div>
+
+                                <p className="mt-1 text-[11px] leading-5 text-[#78849a]">
+                                  {notification.message ||
+                                    notification.description ||
+                                    "You have a new notification."}
+                                </p>
+                              </div>
+                            </button>
+                          ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <div
-              className="
-                flex h-10 w-10 items-center justify-center
-                rounded-full
-                border border-[#c9a646]/30
-                bg-[#171d31]
-                text-[#d8bd68]
-              "
-            >
-              ♙
+            {/* =================================================
+                ADMINISTRATOR / PROFILE MENU
+            ================================================= */}
+
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((previous) => !previous)}
+                className="
+                  flex items-center gap-3
+                  rounded-xl
+                  px-2 py-1.5
+                  transition
+                  hover:bg-white/[0.03]
+                "
+                aria-label="Administrator menu"
+              >
+                {/* Administrator text */}
+                <div className="hidden text-right sm:block">
+                  <p className="text-sm font-semibold text-[#e8d8ae]">
+                    Administrator
+                  </p>
+
+                  <p className="text-[10px] uppercase tracking-wider text-[#68748b]">
+                    Super Admin
+                  </p>
+                </div>
+
+                {/* Profile icon */}
+                <div
+                  className="
+                    flex h-10 w-10 items-center justify-center
+                    rounded-full
+                    border border-[#c9a646]/30
+                    bg-[#171d31]
+                    text-[#d8bd68]
+                    transition
+                    hover:border-[#c9a646]/60
+                  "
+                >
+                  ♙
+                </div>
+              </button>
+
+              {/* Profile Dropdown */}
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.97,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.97,
+                    }}
+                    transition={{ duration: 0.15 }}
+                    className="
+                      absolute right-0 top-14 z-[100]
+                      w-[230px]
+                      overflow-hidden
+                      rounded-2xl
+                      border border-[#c9a646]/20
+                      bg-[#0b1220]
+                      shadow-[0_20px_70px_rgba(0,0,0,0.55)]
+                    "
+                  >
+                    {/* Profile information */}
+                    <div className="border-b border-white/5 px-4 py-4">
+                      <p className="text-sm font-semibold text-[#e8d9b5]">
+                        Administrator
+                      </p>
+
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#68748a]">
+                        Super Admin
+                      </p>
+                    </div>
+
+                    {/* Logout */}
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="
+                        flex w-full items-center gap-3
+                        px-4 py-3
+                        text-left
+                        text-sm text-[#9da8bd]
+                        transition
+                        hover:bg-red-500/5
+                        hover:text-red-300
+                      "
+                    >
+                      <LogOut size={17} />
+                      <span>Logout</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -507,13 +873,15 @@ function SuperAdminDashboard() {
 
           {/* Bottom navigation */}
           <div className="space-y-2">
+            {/* Settings */}
             <button
               onClick={() => setActiveMenu("settings")}
               className="
                 flex w-full items-center gap-3
                 rounded-xl px-4 py-3
                 text-sm text-[#7e899e]
-                transition hover:bg-white/[0.03]
+                transition
+                hover:bg-white/[0.03]
                 hover:text-[#d2d8e3]
               "
             >
@@ -524,13 +892,15 @@ function SuperAdminDashboard() {
               Settings
             </button>
 
+            {/* Logout */}
             <button
               onClick={handleLogout}
               className="
                 flex w-full items-center gap-3
                 rounded-xl px-4 py-3
                 text-sm text-[#7e899e]
-                transition hover:bg-red-500/5
+                transition
+                hover:bg-red-500/5
                 hover:text-red-300
               "
             >
@@ -564,6 +934,7 @@ function SuperAdminDashboard() {
           {/* Messages */}
 
           <AnimatePresence>
+            {/* Error */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -589,6 +960,7 @@ function SuperAdminDashboard() {
               </motion.div>
             )}
 
+            {/* Success */}
             {successMessage && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -607,7 +979,9 @@ function SuperAdminDashboard() {
             )}
           </AnimatePresence>
 
-          {/* PAGE HEADER */}
+          {/* =================================================
+              PAGE HEADER
+          ================================================= */}
 
           <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
@@ -623,11 +997,11 @@ function SuperAdminDashboard() {
                 Here's what's happening in Hackfest.
               </p>
             </div>
-
-            {/* Create Event button removed */}
           </div>
 
-          {/* CONTENT */}
+          {/* =================================================
+              CONTENT
+          ================================================= */}
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -642,8 +1016,6 @@ function SuperAdminDashboard() {
           </AnimatePresence>
         </div>
       </main>
-
-      {/* Event modal removed */}
     </div>
   );
 }
@@ -651,6 +1023,7 @@ function SuperAdminDashboard() {
 // =============================================================
 // OVERVIEW
 // =============================================================
+
 function Overview({
   dashboard,
   events,
@@ -731,7 +1104,9 @@ function Overview({
 
           {events.length === 0 ? (
             <div className="py-12 text-center">
-              <div className="mb-3 text-3xl opacity-40">📜</div>
+              <div className="mb-3 text-3xl opacity-40">
+                📜
+              </div>
 
               <p className="text-sm text-[#778298]">
                 No events created yet.
@@ -959,10 +1334,14 @@ function EventsPage({
     const rows = events.map((event) => [
       event.name || "",
       event.description || "",
-      event.date ? new Date(event.date).toLocaleDateString() : "",
+      event.date
+        ? new Date(event.date).toLocaleDateString()
+        : "",
       event.venue || "",
       event.registrationDeadline
-        ? new Date(event.registrationDeadline).toLocaleDateString()
+        ? new Date(
+            event.registrationDeadline
+          ).toLocaleDateString()
         : "",
       event.maxParticipants ?? "",
       event.status || "",
@@ -972,7 +1351,10 @@ function EventsPage({
     const csv = [headers, ...rows]
       .map((row) =>
         row
-          .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+          .map(
+            (value) =>
+              `"${String(value).replace(/"/g, '""')}"`
+          )
           .join(",")
       )
       .join("\n");
@@ -1052,7 +1434,9 @@ function EventsPage({
         </div>
       ) : events.length === 0 ? (
         <div className="rounded-2xl border border-white/5 bg-[#0c1322]/70 p-12 text-center">
-          <div className="text-4xl opacity-40">📜</div>
+          <div className="text-4xl opacity-40">
+            📜
+          </div>
 
           <p className="mt-4 text-[#aab3c2]">
             No events found.
@@ -1097,11 +1481,14 @@ function EventsPage({
                     </div>
 
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-[#7a869b]">
-                      {event.description || "No description provided."}
+                      {event.description ||
+                        "No description provided."}
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[#68748a]">
-                      <span>📅 {formatDate(event.date)}</span>
+                      <span>
+                        📅 {formatDate(event.date)}
+                      </span>
 
                       {event.venue && (
                         <span>⌖ {event.venue}</span>
@@ -1131,7 +1518,8 @@ function EventsPage({
                       bg-blue-400/5
                       px-4 py-2
                       text-xs text-blue-300
-                      transition hover:bg-blue-400/10
+                      transition
+                      hover:bg-blue-400/10
                     "
                   >
                     Edit
@@ -1145,7 +1533,8 @@ function EventsPage({
                       bg-red-400/5
                       px-4 py-2
                       text-xs text-red-300
-                      transition hover:bg-red-400/10
+                      transition
+                      hover:bg-red-400/10
                     "
                   >
                     Delete
@@ -1228,9 +1617,21 @@ function EventModal({
       }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 15 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 15 }}
+        initial={{
+          opacity: 0,
+          scale: 0.96,
+          y: 15,
+        }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          y: 0,
+        }}
+        exit={{
+          opacity: 0,
+          scale: 0.96,
+          y: 15,
+        }}
         className="
           max-h-[90vh]
           w-full max-w-2xl
@@ -1360,11 +1761,25 @@ function EventModal({
                 onChange={onChange}
                 className="input-style"
               >
-                <option value="draft">Draft</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="draft">
+                  Draft
+                </option>
+
+                <option value="upcoming">
+                  Upcoming
+                </option>
+
+                <option value="ongoing">
+                  Ongoing
+                </option>
+
+                <option value="completed">
+                  Completed
+                </option>
+
+                <option value="cancelled">
+                  Cancelled
+                </option>
               </select>
             </FormField>
 
@@ -1427,7 +1842,9 @@ function EventModal({
                 hover:bg-[#c9a646]/20
               "
             >
-              {editing ? "Save Changes" : "Create Event"}
+              {editing
+                ? "Save Changes"
+                : "Create Event"}
             </button>
           </div>
         </form>
