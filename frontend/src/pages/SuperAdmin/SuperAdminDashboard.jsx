@@ -326,7 +326,7 @@ function SuperAdminDashboard() {
 
   const renderContent = () => {
     if (activeMenu === "overview") {
-      return <OverviewTab onNavigateTab={setActiveMenu} />;
+      return <OverviewTab setActiveMenu={setActiveMenu} />;
     }
 
     if (activeMenu === "events") {

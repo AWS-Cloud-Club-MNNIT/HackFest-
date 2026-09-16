@@ -1,3 +1,4 @@
+
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 import Team from "../models/Team.js";
@@ -30,12 +31,9 @@ const createEvent = async (req, res) => {
 const getAllEvents = async (req, res) => {
   try {
     const { status, isActive } = req.query;
-
     const filter = {};
 
-    if (status) {
-      filter.status = status;
-    }
+    if (status) filter.status = status;
 
     if (isActive !== undefined) {
       filter.isActive = isActive === "true";
@@ -50,7 +48,8 @@ const getAllEvents = async (req, res) => {
       count: events.length,
       filters: {
         status: status || null,
-        isActive: isActive !== undefined ? isActive === "true" : null,
+        isActive:
+          isActive !== undefined ? isActive === "true" : null,
       },
       events,
     });
@@ -95,10 +94,14 @@ const getEventById = async (req, res) => {
 // ===============================
 const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const event = await Event.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!event) {
       return res.status(404).json({
@@ -154,14 +157,25 @@ const deleteEvent = async (req, res) => {
 const extendDeadline = async (req, res) => {
   try {
     const { registrationDeadline } = req.body;
+
     if (!registrationDeadline) {
-      return res.status(400).json({ success: false, message: "New deadline is required" });
+      return res.status(400).json({
+        success: false,
+        message: "New deadline is required",
+      });
     }
-    
-    const event = await Event.findByIdAndUpdate(req.params.id, { registrationDeadline }, { new: true });
-    
+
+    const event = await Event.findByIdAndUpdate(
+      req.params.id,
+      { registrationDeadline },
+      { new: true }
+    );
+
     if (!event) {
-      return res.status(404).json({ success: false, message: "Event not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
     }
 
     res.status(200).json({
@@ -184,31 +198,73 @@ const extendDeadline = async (req, res) => {
 const getDashboardOverview = async (req, res) => {
   try {
     const totalEvents = await Event.countDocuments();
-    const activeEvents = await Event.countDocuments({ isActive: true });
+
+    const activeEvents = await Event.countDocuments({
+      isActive: true,
+    });
+
     const totalUsers = await User.countDocuments();
     const totalTeams = await Team.countDocuments();
-    
-    const teams = await Team.find();
-    
-    // Domain-wise split
+
+    const teams = await Team.find()
+      .select("domain members status checkedIn")
+      .lean();
+
     const domains = {};
+    const domainAnalytics = {};
+
     let checkedInTeams = 0;
     let completeTeams = 0;
     let formingTeams = 0;
+    let totalAssignedParticipants = 0;
 
-    teams.forEach(team => {
-      // Domains
-      if (team.domain) {
-        domains[team.domain] = (domains[team.domain] || 0) + 1;
+    teams.forEach((team) => {
+      const domain = team.domain || "Unspecified";
+
+      // Domain-wise team count
+      domains[domain] = (domains[domain] || 0) + 1;
+
+      // Domain analytics
+      if (!domainAnalytics[domain]) {
+        domainAnalytics[domain] = {
+          teams: 0,
+          participants: 0,
+        };
       }
-      // Status
-      if (team.status === "complete" || team.status === "locked") completeTeams++;
-      if (team.status === "forming") formingTeams++;
-      // Checked in
-      if (team.checkedIn) checkedInTeams++;
+
+      domainAnalytics[domain].teams += 1;
+
+      const participants = Array.isArray(team.members)
+        ? team.members.length
+        : 0;
+
+      domainAnalytics[domain].participants += participants;
+      totalAssignedParticipants += participants;
+
+      // Team status
+      if (
+        team.status === "complete" ||
+        team.status === "locked"
+      ) {
+        completeTeams++;
+      }
+
+      if (team.status === "forming") {
+        formingTeams++;
+      }
+
+      // Check-in
+      if (team.checkedIn) {
+        checkedInTeams++;
+      }
     });
 
-    const checkedInPercentage = totalTeams > 0 ? ((checkedInTeams / totalTeams) * 100).toFixed(2) : 0;
+    const checkedInPercentage =
+      totalTeams > 0
+        ? Number(
+            ((checkedInTeams / totalTeams) * 100).toFixed(2)
+          )
+        : 0;
 
     res.status(200).json({
       success: true,
@@ -217,13 +273,21 @@ const getDashboardOverview = async (req, res) => {
         activeEvents,
         totalUsers,
         totalTeams,
+
         domains,
-        checkedInPercentage: Number(checkedInPercentage),
+        domainAnalytics,
+
+        totalAssignedParticipants,
+        checkedInTeams,
+        checkedInPercentage,
+
         formingTeams,
         completeTeams,
       },
     });
   } catch (error) {
+    console.error("Dashboard overview error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch dashboard stats",
@@ -237,17 +301,31 @@ const getDashboardOverview = async (req, res) => {
 // ===============================
 const getAllUsers = async (req, res) => {
   try {
-    const { college, branch, lookingForTeam, blocked } = req.query;
-    
-    let filter = {};
+    const {
+      college,
+      branch,
+      lookingForTeam,
+      blocked,
+    } = req.query;
+
+    const filter = {};
+
     if (college) filter.college = college;
     if (branch) filter.branch = branch;
-    if (lookingForTeam !== undefined) filter.lookingForTeam = lookingForTeam === "true";
-    if (blocked !== undefined) filter.isBlocked = blocked === "true";
 
-    const users = await User.find(filter).select("-passwordHash").sort({
-      createdAt: -1,
-    });
+    if (lookingForTeam !== undefined) {
+      filter.lookingForTeam = lookingForTeam === "true";
+    }
+
+    if (blocked !== undefined) {
+      filter.isBlocked = blocked === "true";
+    }
+
+    const users = await User.find(filter)
+      .select("-passwordHash")
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json({
       success: true,
@@ -268,7 +346,9 @@ const getAllUsers = async (req, res) => {
 // ===============================
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-passwordHash");
+    const user = await User.findById(req.params.id).select(
+      "-passwordHash"
+    );
 
     if (!user) {
       return res.status(404).json({
@@ -341,11 +421,17 @@ const updateUserRole = async (req, res) => {
     const targetUser = await User.findById(req.params.id);
 
     if (!targetUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-    
-    // Simple toggle between participant and super_admin
-    targetUser.role = targetUser.role === "super_admin" ? "participant" : "super_admin";
+
+    targetUser.role =
+      targetUser.role === "super_admin"
+        ? "participant"
+        : "super_admin";
+
     await targetUser.save();
 
     res.status(200).json({
@@ -354,7 +440,7 @@ const updateUserRole = async (req, res) => {
       user: {
         _id: targetUser._id,
         role: targetUser.role,
-      }
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -368,16 +454,9 @@ const updateUserRole = async (req, res) => {
 // ===============================
 // BROADCAST NOTIFICATION
 // ===============================
-// Sends an in-app notification to every targeted user by creating one
-// Notification doc per recipient (the schema is per-user, so a "broadcast"
-// is just a fan-out insert). Also emits a live "notification:new" socket
-// event to each connected recipient if Socket.io has been wired up
-// (see backend/src/services/socket.service.js) so the bell updates
-// instantly instead of waiting on the frontend's poll interval.
 const broadcastNotification = async (req, res) => {
   try {
     const { message, audience } = req.body;
-    // audience: "all" | "participants" | "team_leaders" (default: "participants")
 
     if (!message || !message.trim()) {
       return res.status(400).json({
@@ -389,17 +468,19 @@ const broadcastNotification = async (req, res) => {
     const filter =
       audience === "all"
         ? {}
-        : audience === "team_leaders"
-        ? { role: "participant" } // narrowed further below
         : { role: "participant" };
 
     let targetUsers = await User.find(filter).select("_id");
 
     if (audience === "team_leaders") {
       const leaderIds = await Team.distinct("leaderId");
-      const leaderIdSet = new Set(leaderIds.map((id) => id.toString()));
-      targetUsers = targetUsers.filter((u) =>
-        leaderIdSet.has(u._id.toString())
+
+      const leaderIdSet = new Set(
+        leaderIds.map((id) => id.toString())
+      );
+
+      targetUsers = targetUsers.filter((user) =>
+        leaderIdSet.has(user._id.toString())
       );
     }
 
@@ -411,18 +492,21 @@ const broadcastNotification = async (req, res) => {
     }
 
     const notifications = await Notification.insertMany(
-      targetUsers.map((u) => ({
-        userId: u._id,
+      targetUsers.map((user) => ({
+        userId: user._id,
         type: "announcement",
         message: message.trim(),
       }))
     );
 
-    // Fire a live socket event per recipient, if socket.io is attached.
     const io = req.app.get("io");
+
     if (io) {
-      notifications.forEach((n) => {
-        io.to(`user:${n.userId}`).emit("notification:new", n);
+      notifications.forEach((notification) => {
+        io.to(`user:${notification.userId}`).emit(
+          "notification:new",
+          notification
+        );
       });
     }
 
@@ -448,6 +532,7 @@ const getAllTeams = async (req, res) => {
     const { status, eventId } = req.query;
 
     const filter = {};
+
     if (status) filter.status = status;
     if (eventId) filter.eventId = eventId;
 
@@ -455,8 +540,13 @@ const getAllTeams = async (req, res) => {
       .populate("leaderId", "name email college")
       .populate("members", "name email college")
       .populate("eventId", "title")
-      .populate("memberHistory.userId", "name email college isBlocked")
-      .sort({ createdAt: -1 });
+      .populate(
+        "memberHistory.userId",
+        "name email college isBlocked"
+      )
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json({
       success: true,
@@ -478,7 +568,10 @@ const getTeamById = async (req, res) => {
       .populate("leaderId", "name email college")
       .populate("members", "name email college")
       .populate("eventId", "title domains")
-      .populate("memberHistory.userId", "name email college isBlocked");
+      .populate(
+        "memberHistory.userId",
+        "name email college isBlocked"
+      );
 
     if (!team) {
       return res.status(404).json({
@@ -500,14 +593,20 @@ const getTeamById = async (req, res) => {
   }
 };
 
-// Force-lock a team regardless of the registration deadline (e.g. to
-// freeze the roster once check-in starts).
+// ===============================
+// LOCK TEAM
+// ===============================
 const lockTeam = async (req, res) => {
   try {
     const team = await Team.findByIdAndUpdate(
       req.params.id,
-      { lockedBySuperAdmin: true, status: "locked" },
-      { new: true }
+      {
+        lockedBySuperAdmin: true,
+        status: "locked",
+      },
+      {
+        new: true,
+      }
     );
 
     if (!team) {
@@ -535,8 +634,13 @@ const unlockTeam = async (req, res) => {
   try {
     const team = await Team.findByIdAndUpdate(
       req.params.id,
-      { lockedBySuperAdmin: false, status: "complete" },
-      { new: true }
+      {
+        lockedBySuperAdmin: false,
+        status: "complete",
+      },
+      {
+        new: true,
+      }
     );
 
     if (!team) {
@@ -590,18 +694,37 @@ const deleteTeam = async (req, res) => {
 const forceAddMember = async (req, res) => {
   try {
     const { userId } = req.body;
+
     if (!userId) {
-      return res.status(400).json({ success: false, message: "userId is required in body" });
+      return res.status(400).json({
+        success: false,
+        message: "userId is required in body",
+      });
     }
 
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
-    
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: "Team not found",
+      });
+    }
+
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     if (team.members.includes(userId)) {
-      return res.status(400).json({ success: false, message: "User is already in this team" });
+      return res.status(400).json({
+        success: false,
+        message: "User is already in this team",
+      });
     }
 
     team.members.push(userId);
@@ -611,9 +734,17 @@ const forceAddMember = async (req, res) => {
     user.lookingForTeam = false;
     await user.save();
 
-    res.status(200).json({ success: true, message: "Member force-added successfully", team });
+    res.status(200).json({
+      success: true,
+      message: "Member force-added successfully",
+      team,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to force add member", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to force add member",
+      error: error.message,
+    });
   }
 };
 
@@ -626,25 +757,49 @@ const forceRemoveMember = async (req, res) => {
     const userId = req.params.userId;
 
     const team = await Team.findById(teamId);
-    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
 
-    if (team.leaderId.toString() === userId.toString()) {
-      return res.status(400).json({ success: false, message: "Cannot remove the team leader. Change leader or delete team." });
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: "Team not found",
+      });
     }
 
-    team.members = team.members.filter(id => id.toString() !== userId.toString());
+    if (
+      team.leaderId.toString() === userId.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cannot remove the team leader. Change leader or delete team.",
+      });
+    }
+
+    team.members = team.members.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+
     await team.save();
 
     const user = await User.findById(userId);
+
     if (user) {
       user.teamId = null;
       user.lookingForTeam = true;
       await user.save();
     }
 
-    res.status(200).json({ success: true, message: "Member force-removed successfully", team });
+    res.status(200).json({
+      success: true,
+      message: "Member force-removed successfully",
+      team,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to force remove member", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to force remove member",
+      error: error.message,
+    });
   }
 };
 
@@ -654,15 +809,30 @@ const forceRemoveMember = async (req, res) => {
 const markCheckedIn = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ success: false, message: "Team not found" });
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: "Team not found",
+      });
+    }
 
     team.checkedIn = true;
     team.checkedInAt = new Date();
+
     await team.save();
 
-    res.status(200).json({ success: true, message: "Team marked as checked in", team });
+    res.status(200).json({
+      success: true,
+      message: "Team marked as checked in",
+      team,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to check in team", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to check in team",
+      error: error.message,
+    });
   }
 };
 
@@ -671,24 +841,37 @@ const markCheckedIn = async (req, res) => {
 // ===============================
 const escapeCsvField = (value) => {
   if (value === undefined || value === null) return "";
+
   const str = String(value);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+
+  if (
+    str.includes(",") ||
+    str.includes('"') ||
+    str.includes("\n")
+  ) {
     return `"${str.replace(/"/g, '""')}"`;
   }
+
   return str;
 };
 
 const rowsToCsv = (headers, rows) => {
   const headerLine = headers.join(",");
+
   const lines = rows.map((row) =>
-    headers.map((h) => escapeCsvField(row[h])).join(",")
+    headers
+      .map((header) => escapeCsvField(row[header]))
+      .join(",")
   );
+
   return [headerLine, ...lines].join("\n");
 };
 
 const exportUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-passwordHash").lean();
+    const users = await User.find()
+      .select("-passwordHash")
+      .lean();
 
     const headers = [
       "_id",
@@ -706,14 +889,19 @@ const exportUsers = async (req, res) => {
 
     const csv = rowsToCsv(
       headers,
-      users.map((u) => ({ ...u, skills: (u.skills || []).join("; ") }))
+      users.map((user) => ({
+        ...user,
+        skills: (user.skills || []).join("; "),
+      }))
     );
 
     res.setHeader("Content-Type", "text/csv");
+
     res.setHeader(
       "Content-Disposition",
       'attachment; filename="users-export.csv"'
     );
+
     res.status(200).send(csv);
   } catch (error) {
     res.status(500).json({
@@ -748,28 +936,31 @@ const exportTeams = async (req, res) => {
 
     const csv = rowsToCsv(
       headers,
-      teams.map((t) => ({
-        _id: t._id,
-        name: t.name,
-        eventTitle: t.eventId?.title || "",
-        leaderName: t.leaderId?.name || "",
-        leaderEmail: t.leaderId?.email || "",
-        memberCount: (t.members || []).length,
-        quitOrRemovedCount: (t.memberHistory || []).filter((h) => !h.rejoined)
-          .length,
-        domain: t.domain || "",
-        status: t.status,
-        checkedIn: t.checkedIn,
-        lockedBySuperAdmin: t.lockedBySuperAdmin,
-        createdAt: t.createdAt,
+      teams.map((team) => ({
+        _id: team._id,
+        name: team.name,
+        eventTitle: team.eventId?.title || "",
+        leaderName: team.leaderId?.name || "",
+        leaderEmail: team.leaderId?.email || "",
+        memberCount: (team.members || []).length,
+        quitOrRemovedCount: (team.memberHistory || []).filter(
+          (history) => !history.rejoined
+        ).length,
+        domain: team.domain || "",
+        status: team.status,
+        checkedIn: team.checkedIn,
+        lockedBySuperAdmin: team.lockedBySuperAdmin,
+        createdAt: team.createdAt,
       }))
     );
 
     res.setHeader("Content-Type", "text/csv");
+
     res.setHeader(
       "Content-Disposition",
       'attachment; filename="teams-export.csv"'
     );
+
     res.status(200).send(csv);
   } catch (error) {
     res.status(500).json({
