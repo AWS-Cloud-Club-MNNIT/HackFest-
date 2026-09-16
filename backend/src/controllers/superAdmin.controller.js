@@ -1,15 +1,99 @@
-
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 import Team from "../models/Team.js";
 import Notification from "../models/Notification.js";
+import logActivity from "../utils/activityLogger.js";
+
+
+// ===============================
+// EVENT VALIDATION HELPER
+// ===============================
+const validateEventData = (data) => {
+  const {
+    title,
+    domains,
+    teamSizeMin,
+    teamSizeMax,
+    registrationDeadline,
+    startDate,
+    endDate,
+  } = data;
+
+  if (!title || !title.trim()) {
+    return "Event title is required";
+  }
+
+  if (
+    !Array.isArray(domains) ||
+    domains.length !== 4 ||
+    domains.some((domain) => !domain || !domain.trim())
+  ) {
+    return "Exactly 4 non-empty domains are required";
+  }
+
+  if (
+    teamSizeMin === undefined ||
+    teamSizeMax === undefined ||
+    Number(teamSizeMin) < 1 ||
+    Number(teamSizeMax) < Number(teamSizeMin)
+  ) {
+    return "Invalid team size range";
+  }
+
+  if (
+    registrationDeadline &&
+    startDate &&
+    new Date(registrationDeadline) >= new Date(startDate)
+  ) {
+    return "Registration deadline must be before the event start date";
+  }
+
+  if (
+    startDate &&
+    endDate &&
+    new Date(startDate) >= new Date(endDate)
+  ) {
+    return "Event start date must be before the end date";
+  }
+
+  return null;
+};
 
 // ===============================
 // CREATE EVENT
 // ===============================
 const createEvent = async (req, res) => {
   try {
-    const event = await Event.create(req.body);
+    const validationError = validateEventData(req.body);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
+
+    const event = await Event.create({
+      ...req.body,
+      title: req.body.title.trim(),
+      description: req.body.description?.trim() || "",
+      domains: req.body.domains.map((domain) => domain.trim()),
+      teamSizeMin: Number(req.body.teamSizeMin),
+      teamSizeMax: Number(req.body.teamSizeMax),
+    });
+
+    await logActivity({
+      req,
+      action: "CREATE_EVENT",
+      targetType: "Event",
+      targetId: event._id,
+      description: `Created event: ${event.title}`,
+      metadata: {
+        domains: event.domains,
+        teamSizeMin: event.teamSizeMin,
+        teamSizeMax: event.teamSizeMax,
+      },
+    });
 
     res.status(201).json({
       success: true,
@@ -17,6 +101,8 @@ const createEvent = async (req, res) => {
       event,
     });
   } catch (error) {
+    console.error("Create event error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to create event",
@@ -31,9 +117,14 @@ const createEvent = async (req, res) => {
 const getAllEvents = async (req, res) => {
   try {
     const { status, isActive } = req.query;
+
     const filter = {};
 
-    if (status) filter.status = status;
+    // Status filter is supported only if the field exists
+    // in the Event schema.
+    if (status) {
+      filter.status = status;
+    }
 
     if (isActive !== undefined) {
       filter.isActive = isActive === "true";
@@ -49,11 +140,15 @@ const getAllEvents = async (req, res) => {
       filters: {
         status: status || null,
         isActive:
-          isActive !== undefined ? isActive === "true" : null,
+          isActive !== undefined
+            ? isActive === "true"
+            : null,
       },
       events,
     });
   } catch (error) {
+    console.error("Get all events error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch events",
@@ -81,6 +176,8 @@ const getEventById = async (req, res) => {
       event,
     });
   } catch (error) {
+    console.error("Get event error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch event",
@@ -94,9 +191,27 @@ const getEventById = async (req, res) => {
 // ===============================
 const updateEvent = async (req, res) => {
   try {
+    const validationError = validateEventData(req.body);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
+
+    const updatedData = {
+      ...req.body,
+      title: req.body.title.trim(),
+      description: req.body.description?.trim() || "",
+      domains: req.body.domains.map((domain) => domain.trim()),
+      teamSizeMin: Number(req.body.teamSizeMin),
+      teamSizeMax: Number(req.body.teamSizeMax),
+    };
+
     const event = await Event.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updatedData,
       {
         new: true,
         runValidators: true,
@@ -110,12 +225,25 @@ const updateEvent = async (req, res) => {
       });
     }
 
+    await logActivity({
+      req,
+      action: "UPDATE_EVENT",
+      targetType: "Event",
+      targetId: event._id,
+      description: `Updated event: ${event.title}`,
+      metadata: {
+      updatedFields: req.body,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Event updated successfully",
       event,
     });
   } catch (error) {
+    console.error("Update event error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to update event",
@@ -138,11 +266,24 @@ const deleteEvent = async (req, res) => {
       });
     }
 
+    await logActivity({
+      req,
+      action: "DELETE_EVENT",
+      targetType: "Event",
+      targetId: event._id,
+      description: `Deleted event: ${event.title}`,
+      metadata: {
+        deletedEventTitle: event.title,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Event deleted successfully",
     });
   } catch (error) {
+    console.error("Delete event error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete event",
@@ -165,11 +306,7 @@ const extendDeadline = async (req, res) => {
       });
     }
 
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      { registrationDeadline },
-      { new: true }
-    );
+    const event = await Event.findById(req.params.id);
 
     if (!event) {
       return res.status(404).json({
@@ -178,12 +315,42 @@ const extendDeadline = async (req, res) => {
       });
     }
 
+    if (
+      event.startDate &&
+      new Date(registrationDeadline) >= new Date(event.startDate)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Registration deadline must be before event start date",
+      });
+    }
+
+    const previousDeadline = event.registrationDeadline;
+
+    event.registrationDeadline = registrationDeadline;
+
+    await event.save();
+
+    await logActivity({
+      req,
+      action: "EXTEND_DEADLINE",
+      targetType: "Event",
+      targetId: event._id,
+      description: `Extended registration deadline for event: ${event.title}`,
+      metadata: {
+        previousDeadline,
+        newDeadline: event.registrationDeadline,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Deadline extended successfully",
       event,
     });
   } catch (error) {
+    console.error("Extend deadline error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to extend deadline",
@@ -221,10 +388,8 @@ const getDashboardOverview = async (req, res) => {
     teams.forEach((team) => {
       const domain = team.domain || "Unspecified";
 
-      // Domain-wise team count
       domains[domain] = (domains[domain] || 0) + 1;
 
-      // Domain analytics
       if (!domainAnalytics[domain]) {
         domainAnalytics[domain] = {
           teams: 0,
@@ -241,7 +406,6 @@ const getDashboardOverview = async (req, res) => {
       domainAnalytics[domain].participants += participants;
       totalAssignedParticipants += participants;
 
-      // Team status
       if (
         team.status === "complete" ||
         team.status === "locked"
@@ -253,7 +417,6 @@ const getDashboardOverview = async (req, res) => {
         formingTeams++;
       }
 
-      // Check-in
       if (team.checkedIn) {
         checkedInTeams++;
       }
@@ -273,14 +436,11 @@ const getDashboardOverview = async (req, res) => {
         activeEvents,
         totalUsers,
         totalTeams,
-
         domains,
         domainAnalytics,
-
         totalAssignedParticipants,
         checkedInTeams,
         checkedInPercentage,
-
         formingTeams,
         completeTeams,
       },
@@ -333,6 +493,8 @@ const getAllUsers = async (req, res) => {
       users,
     });
   } catch (error) {
+    console.error("Get all users error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch users",
@@ -362,6 +524,8 @@ const getUserById = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error("Get user error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch user",
@@ -392,7 +556,19 @@ const toggleBlockUser = async (req, res) => {
     }
 
     targetUser.isBlocked = !targetUser.isBlocked;
+
     await targetUser.save();
+
+    await logActivity({
+      req,
+      action: targetUser.isBlocked ? "BLOCK_USER" : "UNBLOCK_USER",
+      targetType: "User",
+      targetId: targetUser._id,
+      description: `${targetUser.isBlocked ? "Blocked" : "Unblocked"} user: ${targetUser.name} (${targetUser.email})`,
+      metadata: {
+        isBlocked: targetUser.isBlocked,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -405,6 +581,8 @@ const toggleBlockUser = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Toggle block user error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to update user block status",
@@ -427,12 +605,26 @@ const updateUserRole = async (req, res) => {
       });
     }
 
+    const previousRole = targetUser.role;
+
     targetUser.role =
       targetUser.role === "super_admin"
         ? "participant"
         : "super_admin";
 
     await targetUser.save();
+
+    await logActivity({
+      req,
+      action: "UPDATE_USER_ROLE",
+      targetType: "User",
+      targetId: targetUser._id,
+      description: `Changed role of ${targetUser.name} (${targetUser.email}) from ${previousRole} to ${targetUser.role}`,
+      metadata: {
+        previousRole,
+        newRole: targetUser.role,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -443,6 +635,8 @@ const updateUserRole = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Update user role error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to update user role",
@@ -462,6 +656,26 @@ const broadcastNotification = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Message is required",
+      });
+    }
+
+    if (message.trim().length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Message cannot exceed 500 characters",
+      });
+    }
+
+    const allowedAudiences = [
+      "all",
+      "participants",
+      "team_leaders",
+    ];
+
+    if (!allowedAudiences.includes(audience)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid audience selected",
       });
     }
 
@@ -510,12 +724,27 @@ const broadcastNotification = async (req, res) => {
       });
     }
 
+    await logActivity({
+      req,
+      action: "BROADCAST_NOTIFICATION",
+      targetType: "Notification",
+      targetId: null,
+      description: `Broadcast sent to ${notifications.length} user(s) (audience: ${audience})`,
+      metadata: {
+        audience,
+        message: message.trim(),
+        recipientCount: notifications.length,
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: `Broadcast sent to ${notifications.length} user(s)`,
       count: notifications.length,
     });
   } catch (error) {
+    console.error("Broadcast notification error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to create broadcast notification",
@@ -525,7 +754,7 @@ const broadcastNotification = async (req, res) => {
 };
 
 // ===============================
-// TEAM MANAGEMENT
+// GET ALL TEAMS
 // ===============================
 const getAllTeams = async (req, res) => {
   try {
@@ -554,6 +783,8 @@ const getAllTeams = async (req, res) => {
       teams,
     });
   } catch (error) {
+    console.error("Get all teams error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch teams",
@@ -562,6 +793,9 @@ const getAllTeams = async (req, res) => {
   }
 };
 
+// ===============================
+// GET SINGLE TEAM
+// ===============================
 const getTeamById = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
@@ -585,6 +819,8 @@ const getTeamById = async (req, res) => {
       team,
     });
   } catch (error) {
+    console.error("Get team error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch team",
@@ -616,12 +852,23 @@ const lockTeam = async (req, res) => {
       });
     }
 
+    await logActivity({
+      req,
+      action: "LOCK_TEAM",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Locked team: ${team.name}`,
+      metadata: {},
+    });
+
     res.status(200).json({
       success: true,
       message: "Team locked successfully",
       team,
     });
   } catch (error) {
+    console.error("Lock team error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to lock team",
@@ -630,18 +877,12 @@ const lockTeam = async (req, res) => {
   }
 };
 
+// ===============================
+// UNLOCK TEAM
+// ===============================
 const unlockTeam = async (req, res) => {
   try {
-    const team = await Team.findByIdAndUpdate(
-      req.params.id,
-      {
-        lockedBySuperAdmin: false,
-        status: "complete",
-      },
-      {
-        new: true,
-      }
-    );
+    const team = await Team.findById(req.params.id).populate("eventId");
 
     if (!team) {
       return res.status(404).json({
@@ -650,12 +891,36 @@ const unlockTeam = async (req, res) => {
       });
     }
 
+    // Recompute status instead of assuming "complete": a team that was
+    // force-locked while still under-strength should go back to "forming",
+    // not be marked complete just because it's being unlocked.
+    const minSize = team.eventId?.teamSizeMin || 1;
+    const currentSize = team.members.length;
+
+    team.lockedBySuperAdmin = false;
+    team.status = currentSize >= minSize ? "complete" : "forming";
+
+    await team.save();
+
+    await logActivity({
+      req,
+      action: "UNLOCK_TEAM",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Unlocked team: ${team.name}`,
+      metadata: {
+        newStatus: team.status,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Team unlocked successfully",
       team,
     });
   } catch (error) {
+    console.error("Unlock team error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to unlock team",
@@ -664,6 +929,9 @@ const unlockTeam = async (req, res) => {
   }
 };
 
+// ===============================
+// DELETE TEAM
+// ===============================
 const deleteTeam = async (req, res) => {
   try {
     const team = await Team.findByIdAndDelete(req.params.id);
@@ -675,11 +943,24 @@ const deleteTeam = async (req, res) => {
       });
     }
 
+    await logActivity({
+      req,
+      action: "DELETE_TEAM",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Deleted team: ${team.name}`,
+      metadata: {
+        deletedTeamName: team.name,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Team deleted successfully",
     });
   } catch (error) {
+    console.error("Delete team error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete team",
@@ -702,7 +983,7 @@ const forceAddMember = async (req, res) => {
       });
     }
 
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findById(req.params.id).populate("eventId");
 
     if (!team) {
       return res.status(404).json({
@@ -720,19 +1001,53 @@ const forceAddMember = async (req, res) => {
       });
     }
 
-    if (team.members.includes(userId)) {
+    if (
+      team.members.some(
+        (memberId) => memberId.toString() === userId.toString()
+      )
+    ) {
       return res.status(400).json({
         success: false,
         message: "User is already in this team",
       });
     }
 
+    if (user.teamId) {
+      return res.status(400).json({
+        success: false,
+        message: "User is already assigned to another team",
+      });
+    }
+
+    // teamSizeMax lives on the Event, not on the Team document itself.
+    const teamSizeMax = team.eventId?.teamSizeMax;
+
+    if (teamSizeMax && team.members.length >= teamSizeMax) {
+      return res.status(400).json({
+        success: false,
+        message: "Team has reached its maximum size",
+      });
+    }
+
     team.members.push(userId);
+
     await team.save();
 
     user.teamId = team._id;
     user.lookingForTeam = false;
+
     await user.save();
+
+    await logActivity({
+      req,
+      action: "FORCE_ADD_MEMBER",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Force-added ${user.name} (${user.email}) to team: ${team.name}`,
+      metadata: {
+        userId: user._id,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -740,6 +1055,8 @@ const forceAddMember = async (req, res) => {
       team,
     });
   } catch (error) {
+    console.error("Force add member error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to force add member",
@@ -786,8 +1103,20 @@ const forceRemoveMember = async (req, res) => {
     if (user) {
       user.teamId = null;
       user.lookingForTeam = true;
+
       await user.save();
     }
+
+    await logActivity({
+      req,
+      action: "FORCE_REMOVE_MEMBER",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Force-removed ${user ? `${user.name} (${user.email})` : `user ${userId}`} from team: ${team.name}`,
+      metadata: {
+        userId,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -795,6 +1124,8 @@ const forceRemoveMember = async (req, res) => {
       team,
     });
   } catch (error) {
+    console.error("Force remove member error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to force remove member",
@@ -822,12 +1153,25 @@ const markCheckedIn = async (req, res) => {
 
     await team.save();
 
+    await logActivity({
+      req,
+      action: "MARK_CHECKED_IN",
+      targetType: "Team",
+      targetId: team._id,
+      description: `Marked team as checked in: ${team.name}`,
+      metadata: {
+        checkedInAt: team.checkedInAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Team marked as checked in",
       team,
     });
   } catch (error) {
+    console.error("Mark checked-in error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to check in team",
@@ -837,10 +1181,12 @@ const markCheckedIn = async (req, res) => {
 };
 
 // ===============================
-// CSV EXPORT
+// CSV HELPERS
 // ===============================
 const escapeCsvField = (value) => {
-  if (value === undefined || value === null) return "";
+  if (value === undefined || value === null) {
+    return "";
+  }
 
   const str = String(value);
 
@@ -867,6 +1213,9 @@ const rowsToCsv = (headers, rows) => {
   return [headerLine, ...lines].join("\n");
 };
 
+// ===============================
+// EXPORT USERS
+// ===============================
 const exportUsers = async (req, res) => {
   try {
     const users = await User.find()
@@ -904,6 +1253,8 @@ const exportUsers = async (req, res) => {
 
     res.status(200).send(csv);
   } catch (error) {
+    console.error("Export users error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to export users",
@@ -912,6 +1263,9 @@ const exportUsers = async (req, res) => {
   }
 };
 
+// ===============================
+// EXPORT TEAMS
+// ===============================
 const exportTeams = async (req, res) => {
   try {
     const teams = await Team.find()
@@ -963,6 +1317,8 @@ const exportTeams = async (req, res) => {
 
     res.status(200).send(csv);
   } catch (error) {
+    console.error("Export teams error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to export teams",

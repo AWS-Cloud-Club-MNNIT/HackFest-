@@ -7,6 +7,7 @@ import TeamsTab from "./tabs/TeamsTab";
 import BroadCastTab from "./tabs/BroadCastTab";
 import EventsTab from "./tabs/EventsTab";
 import OverviewTab from "./tabs/OverviewTab";
+import ActivityLogsTab from "./tabs/ActivityLogsTab";
 import SettingsTab from "./tabs/SettingsTab";
 
 import { Bell, LogOut } from "lucide-react";
@@ -38,6 +39,11 @@ const menuItems = [
     id: "broadcast",
     label: "Broadcast",
     icon: "✦",
+  },
+  {
+  id: "activity-logs",
+  label: "Activity Logs",
+  icon: "◷",
   },
 ];
 
@@ -347,6 +353,10 @@ function SuperAdminDashboard() {
 
     if (activeMenu === "settings") {
       return <SettingsTab />;
+    }
+
+    if (activeMenu === "activity-logs") {
+     return <ActivityLogsTab />;
     }
 
     return null;
@@ -800,7 +810,7 @@ function SuperAdminDashboard() {
           lg:block
         "
       >
-        <div className="flex h-full flex-col px-4 py-6">
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto px-4 py-6">
           {/* Brand */}
           <div className="mb-8 px-3">
             <p className="text-lg font-bold tracking-widest text-[#e4d09a]">

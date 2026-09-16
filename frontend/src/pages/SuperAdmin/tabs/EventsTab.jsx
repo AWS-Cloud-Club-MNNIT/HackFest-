@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import API from "../../../services/api";
@@ -20,6 +19,7 @@ function EventsTab() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
 
   const formatDateTimeLocal = (date) => {
     if (!date) return "";
@@ -29,7 +29,9 @@ function EventsTab() {
     if (Number.isNaN(parsedDate.getTime())) return "";
 
     const offset = parsedDate.getTimezoneOffset();
-    const localDate = new Date(parsedDate.getTime() - offset * 60000);
+    const localDate = new Date(
+      parsedDate.getTime() - offset * 60000
+    );
 
     return localDate.toISOString().slice(0, 16);
   };
@@ -90,6 +92,7 @@ function EventsTab() {
   const handleDomainChange = (index, value) => {
     setForm((previousForm) => {
       const updatedDomains = [...previousForm.domains];
+
       updatedDomains[index] = value;
 
       return {
@@ -105,7 +108,10 @@ function EventsTab() {
       return false;
     }
 
-    if (form.domains.some((domain) => !domain.trim())) {
+    if (
+      form.domains.length !== 4 ||
+      form.domains.some((domain) => !domain.trim())
+    ) {
       toast.error("All four domains are required");
       return false;
     }
@@ -144,6 +150,20 @@ function EventsTab() {
     return true;
   };
 
+  const createPayload = (isActive = form.isActive) => {
+    return {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      domains: form.domains.map((domain) => domain.trim()),
+      teamSizeMin: Number(form.teamSizeMin),
+      teamSizeMax: Number(form.teamSizeMax),
+      registrationDeadline: form.registrationDeadline || null,
+      startDate: form.startDate || null,
+      endDate: form.endDate || null,
+      isActive,
+    };
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -152,23 +172,18 @@ function EventsTab() {
     try {
       setSaving(true);
 
-      const payload = {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        domains: form.domains.map((domain) => domain.trim()),
-        teamSizeMin: Number(form.teamSizeMin),
-        teamSizeMax: Number(form.teamSizeMax),
-        registrationDeadline: form.registrationDeadline || null,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
-        isActive: form.isActive,
-      };
+      const payload = createPayload();
 
       if (editingId) {
-        await API.put(`/super-admin/events/${editingId}`, payload);
+        await API.put(
+          `/super-admin/events/${editingId}`,
+          payload
+        );
+
         toast.success("Event configuration updated successfully");
       } else {
         await API.post("/super-admin/events", payload);
+
         toast.success("Event configuration created successfully");
       }
 
@@ -185,6 +200,61 @@ function EventsTab() {
     }
   };
 
+  // ===============================
+  // ACTIVATE / DEACTIVATE EVENT
+  // ===============================
+  const handleToggleStatus = async () => {
+    if (!editingId) {
+      toast.error("Create an event before changing its status");
+      return;
+    }
+
+    if (!validateForm()) return;
+
+    const nextStatus = !form.isActive;
+
+    const confirmed = window.confirm(
+      nextStatus
+        ? "Are you sure you want to activate this event?"
+        : "Are you sure you want to deactivate this event?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setTogglingStatus(true);
+
+      const payload = createPayload(nextStatus);
+
+      await API.put(
+        `/super-admin/events/${editingId}`,
+        payload
+      );
+
+      setForm((previousForm) => ({
+        ...previousForm,
+        isActive: nextStatus,
+      }));
+
+      toast.success(
+        nextStatus
+          ? "Event activated successfully"
+          : "Event deactivated successfully"
+      );
+
+      await fetchActiveConfig();
+    } catch (error) {
+      console.error("Error changing event status:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to change event status"
+      );
+    } finally {
+      setTogglingStatus(false);
+    }
+  };
+
   const handleReset = async () => {
     const confirmed = window.confirm(
       "Are you sure you want to reset your changes?"
@@ -193,6 +263,7 @@ function EventsTab() {
     if (!confirmed) return;
 
     await fetchActiveConfig();
+
     toast.success("Changes reset");
   };
 
@@ -217,8 +288,51 @@ function EventsTab() {
         </h2>
 
         <p className="mt-2 text-sm text-gray-400">
-          Configure event details, competition domains, team sizes and dates.
+          Configure event details, competition domains, team sizes
+          and dates.
         </p>
+      </div>
+
+      {/* Status Control */}
+      <div className="flex flex-col justify-between gap-4 rounded-2xl border border-[#c9a646]/20 bg-[#101729]/80 p-5 sm:flex-row sm:items-center">
+        <div>
+          <p className="text-xs uppercase tracking-wider text-gray-400">
+            Current Event Status
+          </p>
+
+          <p
+            className={`mt-2 text-lg font-semibold ${
+              form.isActive
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {form.isActive ? "● Active" : "● Inactive"}
+          </p>
+
+          <p className="mt-1 text-xs text-gray-500">
+            {form.isActive
+              ? "Participants can access this event."
+              : "Participants cannot access this event."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggleStatus}
+          disabled={togglingStatus || saving || !editingId}
+          className={`rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            form.isActive
+              ? "border border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20"
+              : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20"
+          }`}
+        >
+          {togglingStatus
+            ? "Updating..."
+            : form.isActive
+              ? "Deactivate Event"
+              : "Activate Event"}
+        </button>
       </div>
 
       {/* Configuration Form */}
@@ -368,7 +482,7 @@ function EventsTab() {
           </div>
         </div>
 
-        {/* Event Status */}
+        {/* Event Status Checkbox */}
         <div className="rounded-xl border border-[#c9a646]/20 bg-[#080b16] p-4">
           <label className="flex cursor-pointer items-center gap-3">
             <input
@@ -390,20 +504,10 @@ function EventsTab() {
               </p>
 
               <p className="mt-1 text-xs text-gray-400">
-                Allow participants to access this event.
+                Save the event with its selected active status.
               </p>
             </div>
           </label>
-
-          <p
-            className={`mt-3 text-xs ${
-              form.isActive ? "text-emerald-400" : "text-red-400"
-            }`}
-          >
-            {form.isActive
-              ? "● Event is active"
-              : "● Event is inactive"}
-          </p>
         </div>
 
         {/* Actions */}
@@ -411,7 +515,7 @@ function EventsTab() {
           <button
             type="button"
             onClick={handleReset}
-            disabled={saving}
+            disabled={saving || togglingStatus}
             className="rounded-xl border border-white/10 px-5 py-3 text-sm text-gray-400 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Reset Changes
@@ -419,7 +523,7 @@ function EventsTab() {
 
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || togglingStatus}
             className="rounded-xl border border-[#c9a646]/40 bg-[#c9a646]/10 px-5 py-3 text-sm font-semibold text-[#e6d29b] transition hover:bg-[#c9a646]/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving

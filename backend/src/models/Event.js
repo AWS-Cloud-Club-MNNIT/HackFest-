@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const eventSchema = new mongoose.Schema(
@@ -12,25 +11,40 @@ const eventSchema = new mongoose.Schema(
     description: {
       type: String,
       default: "",
+      trim: true,
     },
 
     domains: {
       type: [String],
       required: true,
       validate: {
-        validator: (domains) => domains.length === 4,
-        message: "Exactly 4 domains are required",
+        validator: (domains) =>
+          Array.isArray(domains) &&
+          domains.length === 4 &&
+          domains.every((domain) => domain.trim().length > 0),
+
+        message: "Exactly 4 non-empty domains are required",
       },
     },
 
     teamSizeMin: {
       type: Number,
       required: true,
+      min: 1,
     },
 
     teamSizeMax: {
       type: Number,
       required: true,
+      min: 1,
+      validate: {
+        validator: function (value) {
+          return value >= this.teamSizeMin;
+        },
+
+        message:
+          "Maximum team size must be greater than or equal to minimum team size",
+      },
     },
 
     registrationDeadline: {
@@ -51,6 +65,7 @@ const eventSchema = new mongoose.Schema(
       default: true,
     },
   },
+
   {
     timestamps: true,
   }
