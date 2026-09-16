@@ -30,7 +30,8 @@ export const createTeam = async (req, res) => {
       eventId,
       leaderId,
       members: [leaderId],
-      status: 'forming'
+      status: 'forming',
+      lookingForTeammates: req.body.lookingForTeammates !== undefined ? req.body.lookingForTeammates : true
     });
 
     await newTeam.save();
@@ -57,6 +58,15 @@ export const getTeam = async (req, res) => {
       .populate('leaderId', '-passwordHash')
       .populate('eventId', 'name teamSizeMax registrationDeadline');
     if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    // Auto-complete logic if team is full but status is forming
+    if (team.status !== 'complete' && team.eventId && team.members.length >= team.eventId.teamSizeMax) {
+      team.status = 'complete';
+      if (!team.qrToken) {
+        team.qrToken = crypto.randomBytes(20).toString('hex');
+      }
+      await team.save();
+    }
 
     // Security check: Only allow actual team members or super_admin to see email and phone
     const isMember = team.members.some(member => member._id.toString() === req.user._id.toString());
