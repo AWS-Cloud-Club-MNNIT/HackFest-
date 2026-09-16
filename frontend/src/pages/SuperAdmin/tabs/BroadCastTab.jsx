@@ -1,32 +1,63 @@
+
 import { useState } from "react";
 import toast from "react-hot-toast";
 import API from "../../../services/api";
+
+const MAX_MESSAGE_LENGTH = 500;
 
 const BroadcastTab = () => {
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState("participants");
   const [sending, setSending] = useState(false);
   const [lastResult, setLastResult] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleMessageChange = (e) => {
+    const value = e.target.value;
+
+    if (value.length <= MAX_MESSAGE_LENGTH) {
+      setMessage(value);
+      setLastResult(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!message.trim()) {
+
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) {
       toast.error("Message cannot be empty");
       return;
     }
 
+    if (trimmedMessage.length < 5) {
+      toast.error("Message must contain at least 5 characters");
+      return;
+    }
+
     setSending(true);
+
     try {
-      const res = await API.post("/super-admin/notifications/broadcast", {
-        message: message.trim(),
-        audience,
-      });
-      toast.success(res.data.message);
+      const res = await API.post(
+        "/super-admin/notifications/broadcast",
+        {
+          message: trimmedMessage,
+          audience,
+        }
+      );
+
+      toast.success(
+        res.data?.message || "Broadcast sent successfully"
+      );
+
       setLastResult(res.data);
       setMessage("");
+      setShowPreview(false);
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Failed to send broadcast"
+        err.response?.data?.message ||
+          "Failed to send broadcast"
       );
     } finally {
       setSending(false);
@@ -34,62 +65,144 @@ const BroadcastTab = () => {
   };
 
   return (
-    <div className="animate-magic-reveal">
-      <h3 className="text-3xl font-bold font-harry text-[#f4e8c1] mb-6 drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
-        Broadcast Announcement
-      </h3>
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <p className="text-xs uppercase tracking-[0.25em] text-[#c9a646]">
+          Communication
+        </p>
 
+        <h3 className="mt-1 text-xl font-bold text-[#d4af37]">
+          Broadcast Announcement
+        </h3>
+
+        <p className="mt-2 text-sm text-gray-500">
+          Send important announcements to selected users.
+        </p>
+      </div>
+
+      {/* Broadcast Form */}
       <form
         onSubmit={handleSubmit}
-        className="parchment-card relative bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl p-8 space-y-6 max-w-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+        className="bg-[#101522] border border-[#d4af37]/30 rounded-2xl p-6 space-y-5 max-w-2xl"
       >
-        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#d4af37]/5 blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Audience</label>
+        {/* Audience */}
+        <div>
+          <label
+            htmlFor="broadcast-audience"
+            className="text-xs text-gray-400"
+          >
+            Audience
+          </label>
+
           <select
+            id="broadcast-audience"
             value={audience}
             onChange={(e) => setAudience(e.target.value)}
             className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all cursor-pointer"
           >
-            <option value="participants">All Participants</option>
-            <option value="team_leaders">Team Leaders Only</option>
-            <option value="all">Everyone (incl. Super Admins)</option>
+            <option value="participants">
+              All Participants
+            </option>
+
+            <option value="team_leaders">
+              Team Leaders Only
+            </option>
+
+            <option value="all">
+              Everyone (incl. Super Admins)
+            </option>
           </select>
         </div>
 
-        <div className="relative z-10">
-          <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Message</label>
+        {/* Message */}
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <label
+              htmlFor="broadcast-message"
+              className="text-xs text-gray-400"
+            >
+              Message
+            </label>
+
+            <span
+              className={`text-xs ${
+                message.length >= MAX_MESSAGE_LENGTH
+                  ? "text-red-400"
+                  : "text-gray-500"
+              }`}
+            >
+              {message.length}/{MAX_MESSAGE_LENGTH}
+            </span>
+          </div>
+
           <textarea
+            id="broadcast-message"
             required
-            rows={4}
+            rows={5}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="e.g. Reminder: team registrations close tonight at 11:59 PM!"
-            className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
+            onChange={handleMessageChange}
+            maxLength={MAX_MESSAGE_LENGTH}
+            placeholder="Write your announcement here..."
+            className="w-full mt-1 bg-[#080b16] border border-[#d4af37]/20 rounded-lg px-3 py-2 text-sm text-white resize-y focus:outline-none focus:border-[#d4af37]/60"
           />
         </div>
 
-        <div className="pt-2 relative z-10">
-          <button
-            type="submit"
-            disabled={sending}
-            className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#c9a646] to-[#d8bd68] text-[#101729] rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
-          >
-            {sending ? "Sending Announcement…" : "Send Broadcast"}
-          </button>
-        </div>
+        {/* Preview Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowPreview((prev) => !prev)}
+          disabled={!message.trim()}
+          className="text-xs text-[#d4af37] hover:underline disabled:opacity-40"
+        >
+          {showPreview ? "Hide Preview" : "Show Preview"}
+        </button>
 
+        {/* Preview */}
+        {showPreview && message.trim() && (
+          <div className="rounded-xl border border-[#d4af37]/20 bg-[#080b16] p-4">
+            <p className="text-[10px] uppercase tracking-wider text-[#d4af37]">
+              Notification Preview
+            </p>
+
+            <p className="mt-2 text-sm text-gray-200 whitespace-pre-wrap break-words">
+              {message.trim()}
+            </p>
+
+            <p className="mt-3 text-xs text-gray-500">
+              Audience:{" "}
+              {audience === "participants"
+                ? "All Participants"
+                : audience === "team_leaders"
+                ? "Team Leaders Only"
+                : "Everyone"}
+            </p>
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={sending || !message.trim()}
+          className="px-5 py-2.5 bg-[#d4af37] text-black rounded-lg text-sm font-bold hover:bg-[#e8c869] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {sending ? "Sending…" : "Send Broadcast"}
+        </button>
+
+        {/* Result */}
         {lastResult && (
-          <p className="text-sm text-emerald-400 font-serif relative z-10">
-            ✓ Last broadcast reached {lastResult.count} wizard(s).
-          </p>
+          <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/5 p-3">
+            <p className="text-sm text-emerald-400">
+              Last broadcast reached{" "}
+              {lastResult.count ?? 0} user(s).
+            </p>
+          </div>
         )}
       </form>
 
-      <p className="text-xs text-[#e8d7b5]/50 mt-6 max-w-2xl italic font-serif">
-        This creates an in-app notification for every user in the selected
-        audience — they'll receive the announcement via owl in their notification bell immediately,
-        or on their next visit to the Great Hall.
+      <p className="text-xs text-gray-500 mt-4 max-w-2xl">
+        This sends an in-app notification using the existing
+        backend broadcast endpoint.
       </p>
     </div>
   );

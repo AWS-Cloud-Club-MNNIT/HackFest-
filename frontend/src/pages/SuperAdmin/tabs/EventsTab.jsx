@@ -11,41 +11,66 @@ const emptyForm = {
   registrationDeadline: "",
   startDate: "",
   endDate: "",
+  isActive: true,
 };
 
-const EventsTab = () => {
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
+function EventsTab() {
   const [form, setForm] = useState(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
+
+  const formatDateTimeLocal = (date) => {
+    if (!date) return "";
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) return "";
+
+    const offset = parsedDate.getTimezoneOffset();
+    const localDate = new Date(
+      parsedDate.getTime() - offset * 60000
+    );
+
+    return localDate.toISOString().slice(0, 16);
+  };
 
   const fetchActiveConfig = async () => {
     try {
       setLoading(true);
-      const res = await API.get("/super-admin/events");
-      const events = res.data?.events || [];
-      
+
+      const response = await API.get("/super-admin/events");
+      const events = response.data.events || [];
+
       if (events.length > 0) {
-        const activeEvent = events[0]; // Assuming only one active event is managed
+        const activeEvent = events[0];
+
         setEditingId(activeEvent._id);
+
         setForm({
           title: activeEvent.title || "",
           description: activeEvent.description || "",
-          domains: activeEvent.domains?.length === 4 ? activeEvent.domains : ["", "", "", ""],
+          domains:
+            activeEvent.domains?.length === 4
+              ? activeEvent.domains
+              : ["", "", "", ""],
           teamSizeMin: activeEvent.teamSizeMin ?? 2,
           teamSizeMax: activeEvent.teamSizeMax ?? 4,
-          registrationDeadline: activeEvent.registrationDeadline
-            ? activeEvent.registrationDeadline.slice(0, 16)
-            : "",
-          startDate: activeEvent.startDate ? activeEvent.startDate.slice(0, 16) : "",
-          endDate: activeEvent.endDate ? activeEvent.endDate.slice(0, 16) : "",
+          registrationDeadline: formatDateTimeLocal(
+            activeEvent.registrationDeadline
+          ),
+          startDate: formatDateTimeLocal(activeEvent.startDate),
+          endDate: formatDateTimeLocal(activeEvent.endDate),
+          isActive: activeEvent.isActive ?? true,
         });
       } else {
         setEditingId(null);
         setForm(emptyForm);
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to load hackathon configuration");
+    } catch (error) {
+      console.error("Error fetching event configuration:", error);
+      toast.error("Unable to load event configuration");
     } finally {
       setLoading(false);
     }
@@ -55,173 +80,462 @@ const EventsTab = () => {
     fetchActiveConfig();
   }, []);
 
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setForm((previousForm) => ({
+      ...previousForm,
+      [name]: value,
+    }));
+  };
+
   const handleDomainChange = (index, value) => {
-    setForm((prev) => {
-      const domains = [...prev.domains];
-      domains[index] = value;
-      return { ...prev, domains };
+    setForm((previousForm) => {
+      const updatedDomains = [...previousForm.domains];
+
+      updatedDomains[index] = value;
+
+      return {
+        ...previousForm,
+        domains: updatedDomains,
+      };
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (form.domains.some((d) => !d.trim())) {
-      toast.error("All 4 domains are required");
-      return;
+  const validateForm = () => {
+    if (!form.title.trim()) {
+      toast.error("Event title is required");
+      return false;
     }
 
-    setSubmitting(true);
+    if (
+      form.domains.length !== 4 ||
+      form.domains.some((domain) => !domain.trim())
+    ) {
+      toast.error("All four domains are required");
+      return false;
+    }
+
+    const minTeamSize = Number(form.teamSizeMin);
+    const maxTeamSize = Number(form.teamSizeMax);
+
+    if (minTeamSize < 1 || maxTeamSize < 1) {
+      toast.error("Team size must be at least 1");
+      return false;
+    }
+
+    if (minTeamSize > maxTeamSize) {
+      toast.error("Minimum team size cannot exceed maximum team size");
+      return false;
+    }
+
+    if (
+      form.registrationDeadline &&
+      form.startDate &&
+      new Date(form.registrationDeadline) >= new Date(form.startDate)
+    ) {
+      toast.error("Registration deadline must be before the start date");
+      return false;
+    }
+
+    if (
+      form.startDate &&
+      form.endDate &&
+      new Date(form.startDate) >= new Date(form.endDate)
+    ) {
+      toast.error("Start date must be before end date");
+      return false;
+    }
+
+    return true;
+  };
+
+  const createPayload = (isActive = form.isActive) => {
+    return {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      domains: form.domains.map((domain) => domain.trim()),
+      teamSizeMin: Number(form.teamSizeMin),
+      teamSizeMax: Number(form.teamSizeMax),
+      registrationDeadline: form.registrationDeadline || null,
+      startDate: form.startDate || null,
+      endDate: form.endDate || null,
+      isActive,
+    };
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!validateForm()) return;
+
     try {
-      const payload = {
-        ...form,
-        teamSizeMin: Number(form.teamSizeMin),
-        teamSizeMax: Number(form.teamSizeMax),
-      };
+      setSaving(true);
+
+      const payload = createPayload();
 
       if (editingId) {
-        await API.put(`/super-admin/events/${editingId}`, payload);
-        toast.success("Configuration updated successfully!");
+        await API.put(
+          `/super-admin/events/${editingId}`,
+          payload
+        );
+
+        toast.success("Event configuration updated successfully");
       } else {
-        const res = await API.post("/super-admin/events", payload);
-        toast.success("Hackathon Configuration initialized!");
-        setEditingId(res.data.event._id);
+        await API.post("/super-admin/events", payload);
+
+        toast.success("Event configuration created successfully");
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save configuration");
+
+      await fetchActiveConfig();
+    } catch (error) {
+      console.error("Error saving event configuration:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to save event configuration"
+      );
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   };
 
+  // ===============================
+  // ACTIVATE / DEACTIVATE EVENT
+  // ===============================
+  const handleToggleStatus = async () => {
+    if (!editingId) {
+      toast.error("Create an event before changing its status");
+      return;
+    }
+
+    if (!validateForm()) return;
+
+    const nextStatus = !form.isActive;
+
+    const confirmed = window.confirm(
+      nextStatus
+        ? "Are you sure you want to activate this event?"
+        : "Are you sure you want to deactivate this event?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setTogglingStatus(true);
+
+      const payload = createPayload(nextStatus);
+
+      await API.put(
+        `/super-admin/events/${editingId}`,
+        payload
+      );
+
+      setForm((previousForm) => ({
+        ...previousForm,
+        isActive: nextStatus,
+      }));
+
+      toast.success(
+        nextStatus
+          ? "Event activated successfully"
+          : "Event deactivated successfully"
+      );
+
+      await fetchActiveConfig();
+    } catch (error) {
+      console.error("Error changing event status:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to change event status"
+      );
+    } finally {
+      setTogglingStatus(false);
+    }
+  };
+
+  const handleReset = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to reset your changes?"
+    );
+
+    if (!confirmed) return;
+
+    await fetchActiveConfig();
+
+    toast.success("Changes reset");
+  };
 
   if (loading) {
-    return <p className="p-6 text-sm text-gray-500">Loading Configuration…</p>;
+    return (
+      <div className="rounded-2xl border border-white/10 bg-[#0c1322]/70 p-10 text-center text-sm text-gray-400">
+        Loading event configuration...
+      </div>
+    );
   }
 
   return (
-    <div className="animate-magic-reveal">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-3xl font-bold font-harry text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">Hackathon Configuration & Domains</h3>
-        <p className="text-sm text-[#e8d7b5]/60 font-serif">Manage the global settings and domains for the event.</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <p className="text-xs uppercase tracking-[0.25em] text-[#c9a646]">
+          Event Management
+        </p>
+
+        <h2 className="mt-2 text-2xl font-bold text-[#e9dcbd]">
+          Event Configuration
+        </h2>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Configure event details, competition domains, team sizes
+          and dates.
+        </p>
       </div>
 
+      {/* Status Control */}
+      <div className="flex flex-col justify-between gap-4 rounded-2xl border border-[#c9a646]/20 bg-[#101729]/80 p-5 sm:flex-row sm:items-center">
+        <div>
+          <p className="text-xs uppercase tracking-wider text-gray-400">
+            Current Event Status
+          </p>
+
+          <p
+            className={`mt-2 text-lg font-semibold ${
+              form.isActive
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {form.isActive ? "● Active" : "● Inactive"}
+          </p>
+
+          <p className="mt-1 text-xs text-gray-500">
+            {form.isActive
+              ? "Participants can access this event."
+              : "Participants cannot access this event."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggleStatus}
+          disabled={togglingStatus || saving || !editingId}
+          className={`rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            form.isActive
+              ? "border border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20"
+              : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20"
+          }`}
+        >
+          {togglingStatus
+            ? "Updating..."
+            : form.isActive
+              ? "Deactivate Event"
+              : "Activate Event"}
+        </button>
+      </div>
+
+      {/* Configuration Form */}
       <form
         onSubmit={handleSubmit}
-        className="parchment-card relative bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl p-8 mb-8 space-y-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+        className="space-y-6 rounded-2xl border border-[#c9a646]/20 bg-[#101729]/80 p-6"
       >
-        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#d4af37]/5 blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Hackathon Title</label>
-          <input
-            required
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
-          />
-        </div>
-
-        <div className="relative z-10">
-          <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={3}
-            className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
-          />
-        </div>
-
-        <div className="relative z-10">
-          <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">
-            Registration Domains (Exactly 4)
+        {/* Event Title */}
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Event Title
           </label>
-          <p className="text-[10px] text-[#e8d7b5]/50 mb-2 italic">These are the Hogwarts Houses or domains participants can register for.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1">
-            {form.domains.map((
-domain, i) => (
+
+          <input
+            type="text"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            placeholder="AWS SBG Hackfest 2026"
+            required
+            className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Description
+          </label>
+
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows="4"
+            placeholder="Describe the event..."
+            className="w-full resize-none rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
+          />
+        </div>
+
+        {/* Domains */}
+        <div>
+          <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Competition Domains
+          </label>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {form.domains.map((domain, index) => (
               <input
-                key={i}
-                required
-                placeholder={`Domain ${i + 1}`}
+                key={index}
+                type="text"
                 value={domain}
-                onChange={(e) => handleDomainChange(i, e.target.value)}
-                className="bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
+                onChange={(event) =>
+                  handleDomainChange(index, event.target.value)
+                }
+                placeholder={`Domain ${index + 1}`}
+                required
+                className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
               />
             ))}
           </div>
+
+          <p className="mt-2 text-xs text-gray-500">
+            Enter exactly four competition domains.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+        {/* Team Size */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Min Team Size</label>
-            <input
-              type="number"
-              min={1}
-              required
-              value={form.teamSizeMin}
-              onChange={(e) => setForm({ ...form, teamSizeMin: e.target.value })}
-              className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Max Team Size</label>
-            <input
-              type="number"
-              min={1}
-              required
-              value={form.teamSizeMax}
-              onChange={(e) => setForm({ ...form, teamSizeMax: e.target.value })}
-              className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
-            />
-          </div>
-        </div>
-
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
-          <div>
-            <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">
-              Registration Deadline
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Minimum Team Size
             </label>
+
             <input
-              type="datetime-local"
+              type="number"
+              name="teamSizeMin"
+              min="1"
+              value={form.teamSizeMin}
+              onChange={handleChange}
               required
-              value={form.registrationDeadline}
-              onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })}
-              className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all [color-scheme:dark]"
+              className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
             />
           </div>
+
           <div>
-            <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">Start Date</label>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Maximum Team Size
+            </label>
+
             <input
-              type="datetime-local"
-              value={form.startDate}
-              onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-              className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all [color-scheme:dark]"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-[#d4af37] uppercase tracking-wider font-serif">End Date</label>
-            <input
-              type="datetime-local"
-              value={form.endDate}
-              onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all [color-scheme:dark]"
+              type="number"
+              name="teamSizeMax"
+              min="1"
+              value={form.teamSizeMax}
+              onChange={handleChange}
+              required
+              className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
             />
           </div>
         </div>
 
-        <div className="pt-6 border-t border-[#d4af37]/20 relative z-10 flex justify-end">
+        {/* Registration Deadline */}
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Registration Deadline
+          </label>
+
+          <input
+            type="datetime-local"
+            name="registrationDeadline"
+            value={form.registrationDeadline}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
+          />
+        </div>
+
+        {/* Event Dates */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Start Date
+            </label>
+
+            <input
+              type="datetime-local"
+              name="startDate"
+              value={form.startDate}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+              End Date
+            </label>
+
+            <input
+              type="datetime-local"
+              name="endDate"
+              value={form.endDate}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-white/10 bg-[#080b16] px-4 py-3 text-sm text-white outline-none transition focus:border-[#c9a646]"
+            />
+          </div>
+        </div>
+
+        {/* Event Status Checkbox */}
+        <div className="rounded-xl border border-[#c9a646]/20 bg-[#080b16] p-4">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              name="isActive"
+              checked={form.isActive}
+              onChange={(event) =>
+                setForm((previousForm) => ({
+                  ...previousForm,
+                  isActive: event.target.checked,
+                }))
+              }
+              className="h-5 w-5 accent-[#d4af37]"
+            />
+
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Active Event
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400">
+                Save the event with its selected active status.
+              </p>
+            </div>
+          </label>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col justify-end gap-3 border-t border-white/10 pt-5 sm:flex-row">
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={saving || togglingStatus}
+            className="rounded-xl border border-white/10 px-5 py-3 text-sm text-gray-400 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Reset Changes
+          </button>
+
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#c9a646] to-[#d8bd68] text-[#101729] rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            disabled={saving || togglingStatus}
+            className="rounded-xl border border-[#c9a646]/40 bg-[#c9a646]/10 px-5 py-3 text-sm font-semibold text-[#e6d29b] transition hover:bg-[#c9a646]/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? 'Saving Configuration…' : 'Save Configuration'}
+            {saving
+              ? "Saving..."
+              : editingId
+                ? "Update Configuration"
+                : "Save Configuration"}
           </button>
         </div>
       </form>
     </div>
   );
-};
+}
 
 export default EventsTab;

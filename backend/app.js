@@ -10,6 +10,7 @@ import joinRequestRoutes from './src/routes/joinRequest.routes.js';
 import notificationRoutes from './src/routes/notification.routes.js';
 import eventRoutes from './src/routes/event.routes.js';
 import superAdminRoutes from './src/routes/superAdmin.routes.js';
+import activityLogRoutes from "./src/routes/activityLog.routes.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/join-requests', joinRequestRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/super-admin', superAdminRoutes);
+app.use("/api/activity-logs", activityLogRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
