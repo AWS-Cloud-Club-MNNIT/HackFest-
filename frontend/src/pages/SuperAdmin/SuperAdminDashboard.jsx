@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 import API from "../../services/api";
 import UsersTab from "./tabs/UsersTab";
@@ -131,6 +132,7 @@ function StatusBadge({ status }) {
 
 function SuperAdminDashboard() {
   const [activeMenu, setActiveMenu] = useState("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ===========================================================
   // NOTIFICATIONS
@@ -331,8 +333,14 @@ function SuperAdminDashboard() {
   // ===========================================================
 
   const renderContent = () => {
+    // Hide mobile menu on tab navigation
+    const handleNavigate = (tab) => {
+      setActiveMenu(tab);
+      setMobileMenuOpen(false);
+    };
+
     if (activeMenu === "overview") {
-      return <OverviewTab setActiveMenu={setActiveMenu} />;
+      return <OverviewTab onNavigateTab={handleNavigate} />;
     }
 
     if (activeMenu === "events") {
@@ -435,9 +443,10 @@ function SuperAdminDashboard() {
         className="
           fixed left-0 right-0 top-0 z-50
           h-[72px]
-          border-b border-[#c9a646]/15
-          bg-[#080d19]/90
+          border-b border-[#d4af37]/20
+          bg-[#080b16]/80
           backdrop-blur-xl
+          shadow-[0_4px_30px_rgba(0,0,0,0.5)]
         "
       >
         <div className="flex h-full items-center justify-between px-6">
@@ -453,7 +462,7 @@ function SuperAdminDashboard() {
             />
 
             <div>
-              <p className="font-harry text-2xl font-bold tracking-wider text-[#f4e8c1]">
+              <p className="font-harry text-3xl font-bold tracking-wider text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
                 AWS SBG
               </p>
 
@@ -792,6 +801,14 @@ function SuperAdminDashboard() {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg border border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/10 transition-all ml-2"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
       </header>
@@ -800,24 +817,39 @@ function SuperAdminDashboard() {
           SIDEBAR
       ===================================================== */}
 
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden top-[72px]"
+          />
+        )}
+      </AnimatePresence>
+
       <aside
-        className="
+        className={`
           fixed bottom-0 left-0 top-[72px] z-40
-          hidden w-[245px]
-          border-r border-[#c9a646]/10
-          bg-[#080d19]/95
+          w-[245px]
+          border-r border-[#d4af37]/20
+          bg-[#10182b]/95
           backdrop-blur-xl
-          lg:block
-        "
+          transition-transform duration-300
+          lg:translate-x-0
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
       >
         <div className="flex h-full min-h-0 flex-col overflow-y-auto px-4 py-6">
           {/* Brand */}
           <div className="mb-8 px-3">
-            <p className="text-lg font-bold tracking-widest text-[#e4d09a]">
+            <p className="font-harry text-3xl font-bold tracking-widest text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]">
               HOGWARTS
             </p>
 
-            <p className="mt-1 text-[10px] uppercase tracking-[0.3em] text-[#626d82]">
+            <p className="mt-1 text-[10px] uppercase tracking-[0.3em] text-[#e8d7b5]/60 font-serif">
               Magic Control Chamber
             </p>
           </div>
@@ -834,7 +866,10 @@ function SuperAdminDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveMenu(item.id)}
+                  onClick={() => {
+                    setActiveMenu(item.id);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`
                     group relative flex w-full items-center gap-3
                     rounded-xl px-4 py-3
@@ -842,8 +877,8 @@ function SuperAdminDashboard() {
                     transition-all duration-200
                     ${
                       active
-                        ? "border border-[#c9a646]/20 bg-[#c9a646]/10 text-[#e8d49d]"
-                        : "border border-transparent text-[#7e899e] hover:bg-white/[0.03] hover:text-[#d2d8e3]"
+                        ? "border border-[#d4af37]/30 bg-[#d4af37]/15 text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(212,175,55,0.1)]"
+                        : "border border-transparent text-[#e8d7b5]/60 hover:bg-[#d4af37]/5 hover:text-[#e8d7b5]"
                     }
                   `}
                 >
@@ -852,9 +887,10 @@ function SuperAdminDashboard() {
                       layoutId="activeNav"
                       className="
                         absolute bottom-2 left-0 top-2
-                        w-[3px]
+                        w-[4px]
                         rounded-r-full
-                        bg-[#c9a646]
+                        bg-[#d4af37]
+                        shadow-[0_0_10px_rgba(212,175,55,0.8)]
                       "
                     />
                   )}
@@ -865,8 +901,8 @@ function SuperAdminDashboard() {
                       rounded-lg
                       ${
                         active
-                          ? "bg-[#c9a646]/10 text-[#d8bd68]"
-                          : "bg-white/[0.025] text-[#69758b]"
+                          ? "bg-[#d4af37]/20 text-[#d4af37] drop-shadow-[0_0_5px_rgba(212,175,55,0.5)]"
+                          : "bg-black/30 text-[#e8d7b5]/40"
                       }
                     `}
                   >
@@ -885,7 +921,10 @@ function SuperAdminDashboard() {
           <div className="space-y-2">
             {/* Settings */}
             <button
-              onClick={() => setActiveMenu("settings")}
+              onClick={() => {
+                setActiveMenu("settings");
+                setMobileMenuOpen(false);
+              }}
               className="
                 flex w-full items-center gap-3
                 rounded-xl px-4 py-3
@@ -924,11 +963,11 @@ function SuperAdminDashboard() {
 
           {/* Footer */}
           <div className="mt-auto px-3">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[#465166]">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[#d4af37]/60 font-bold">
               AWS Student Builder Group
             </p>
 
-            <p className="mt-1 text-[9px] text-[#394357]">
+            <p className="mt-1 text-[9px] text-[#e8d7b5]/40 font-serif">
               MNNIT Allahabad
             </p>
           </div>
@@ -993,17 +1032,17 @@ function SuperAdminDashboard() {
               PAGE HEADER
           ================================================= */}
 
-          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end animate-magic-reveal">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#c9a646]">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4af37] bg-[#d4af37]/10 inline-block px-3 py-1 rounded-full border border-[#d4af37]/30 shadow-[0_0_10px_rgba(212,175,55,0.1)]">
                 ⚡ Magic Control Chamber
               </p>
 
-              <h1 className="text-3xl font-bold tracking-tight text-[#eee1c0] md:text-4xl">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-wide font-harry text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
                 Good morning, Administrator
               </h1>
 
-              <p className="mt-2 text-sm text-[#78849a]">
+              <p className="mt-3 text-base text-[#e8d7b5]/70 font-serif">
                 Here's what's happening in Hackfest.
               </p>
             </div>

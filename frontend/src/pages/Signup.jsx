@@ -122,23 +122,30 @@ const Signup = () => {
   };
 
 
-  const inputStyles = "w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#101522]/80 border border-white/10 text-white placeholder-gray-600 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 focus:bg-[#101522] transition-all outline-none backdrop-blur-md shadow-inner";
-  const selectStyles = `${inputStyles} appearance-none [&>option]:bg-[#101522] [&>option]:text-white`;
+  const inputStyles = "w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#080b16]/60 border border-[#d4af37]/30 text-[#e8d7b5] placeholder-gray-600 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 magic-input-focus outline-none backdrop-blur-md shadow-[inset_0_2px_10px_rgba(0,0,0,0.4)] transition-all duration-300";
+  const selectStyles = `${inputStyles} appearance-none [&>option]:bg-[#10182b] [&>option]:text-[#e8d7b5]`;
 
   return (
     <div className="min-h-screen bg-[#05070f] text-white flex flex-col md:flex-row">
       
       {/* Left Banner Section */}
-      <div className="hidden md:flex md:w-1/3 lg:w-[45%] bg-gradient-to-br from-[#0c101a] via-[#05070f] to-[#1a1405] border-r border-white/5 p-12 lg:p-16 flex-col relative overflow-hidden justify-between">
+      <div className="hidden md:flex md:w-[40%] lg:w-[45%] bg-[#080b16] border-r border-[#d4af37]/20 p-12 lg:p-16 flex-col relative overflow-hidden justify-between">
+        
+        {/* Cinematic Background & Grid */}
+        <div className="cinematic-bg-overlay z-0" />
+        <div className="absolute inset-0 bg-hogwarts-grid opacity-20 pointer-events-none z-0" />
+        
         {/* Ambient Magic Glows */}
-        <div className="absolute top-[-20%] left-[-20%] w-[100%] h-[60%] bg-[#d4af37]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[50%] bg-[#5c3b80]/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-[-20%] left-[-20%] w-[100%] h-[60%] bg-[#d4af37]/15 rounded-full blur-[140px] pointer-events-none animate-candle z-0" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[50%] bg-[#5c3b80]/20 rounded-full blur-[120px] pointer-events-none z-0" />
         
-        {/* Background Grid Pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-5 pointer-events-none" />
-        
+        {/* Floating Sparks */}
+        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-[#d4af37] rounded-full blur-[1px] animate-star z-0" />
+        <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-[#f4e8c1] rounded-full blur-[2px] animate-float z-0" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-[#d4af37] rounded-full blur-[1px] animate-star z-0" style={{ animationDelay: '2s' }} />
+
         <div className="relative z-10 flex flex-col h-full justify-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }}>
             <span className="font-display px-4 py-1.5 text-xs tracking-[0.25em] font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 shadow-[0_0_20px_rgba(212,175,55,0.15)] mb-8 inline-block">
               HACKFEST REGISTRATION
             </span>
@@ -196,20 +203,21 @@ const Signup = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center relative overflow-y-auto">
-        <div className="max-w-md w-full mx-auto">
+      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center relative overflow-y-auto bg-[#080b16] animate-magic-reveal">
+        <div className="cinematic-bg-overlay z-0" />
+        <div className="max-w-md w-full mx-auto z-10">
           
           {/* Mobile Progress Text */}
           <div className="md:hidden mb-10 text-center">
-             <span className="font-display px-3 py-1 text-[10px] tracking-widest font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 mb-4 inline-block">
+             <span className="font-display px-3 py-1 text-[10px] tracking-widest font-bold text-[#d4af37] uppercase bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30 mb-4 inline-block shadow-[0_0_15px_rgba(212,175,55,0.2)]">
               Step {step} of 3
             </span>
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="font-harry text-3xl font-bold text-[#f4e8c1] mb-2 tracking-wide drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
               {step === 1 ? "Personal Details" : step === 2 ? "Academic Profile" : "Account Setup"}
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="relative">
+          <form onSubmit={handleSubmit} className="relative parchment-card p-6 md:p-10 rounded-3xl">
             <AnimatePresence mode="wait" custom={step}>
               
               {/* STEP 1: Personal Details */}
@@ -223,8 +231,8 @@ const Signup = () => {
                   className="space-y-6"
                 >
                   <div className="hidden md:block mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Who are you?</h2>
-                    <p className="text-gray-400">Let's start with your basic information.</p>
+                    <h2 className="font-harry text-4xl text-[#f4e8c1] mb-2 tracking-wide drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">Who are you?</h2>
+                    <p className="text-[#e8d7b5]/60 font-serif">Let's start with your basic information.</p>
                   </div>
                   
                   <InputWrapper icon={User} label="Full Name *">
@@ -252,8 +260,8 @@ const Signup = () => {
                   className="space-y-6"
                 >
                   <div className="hidden md:block mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Your Background</h2>
-                    <p className="text-gray-400">Tell us about your studies and skills.</p>
+                    <h2 className="font-harry text-4xl text-[#f4e8c1] mb-2 tracking-wide drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">Your Background</h2>
+                    <p className="text-[#e8d7b5]/60 font-serif">Tell us about your studies and skills.</p>
                   </div>
                   
                   <InputWrapper icon={Building2} label="College / University *">
@@ -297,8 +305,8 @@ const Signup = () => {
                   className="space-y-6"
                 >
                   <div className="hidden md:block mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Secure Account</h2>
-                    <p className="text-gray-400">Set a password to complete registration.</p>
+                    <h2 className="font-harry text-4xl text-[#f4e8c1] mb-2 tracking-wide drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">Secure Account</h2>
+                    <p className="text-[#e8d7b5]/60 font-serif">Set a password to complete registration.</p>
                   </div>
                   
                   <InputWrapper icon={Lock} label="Password *">
@@ -337,7 +345,7 @@ const Signup = () => {
                 <button 
                   type="button" 
                   onClick={prevStep} 
-                  className="px-6 py-4 rounded-xl bg-[#101522] border border-white/10 text-white font-bold hover:bg-white/5 hover:border-white/20 transition-all"
+                  className="px-6 py-4 rounded-xl bg-[#080b16] border border-[#d4af37]/30 text-[#e8d7b5] font-bold hover:bg-[#d4af37]/10 hover:border-[#d4af37]/60 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all"
                 >
                   Back
                 </button>
@@ -347,7 +355,7 @@ const Signup = () => {
                 <button 
                   type="button" 
                   onClick={nextStep} 
-                  className="flex-1 flex items-center justify-center gap-2 bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#24170f] via-[#5c3b80]/40 to-[#24170f] text-[#d4af37] border border-[#d4af37]/50 font-bold py-4 rounded-xl hover:text-[#f4e8c1] hover:border-[#f4e8c1] transition-colors shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]"
                 >
                   Continue <ChevronRight className="w-5 h-5" />
                 </button>

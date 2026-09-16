@@ -100,41 +100,20 @@ const UsersTab = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-bold text-[#d4af37]">
-            Participants ({filtered.length}/{users.length})
-          </h3>
-
-          <p className="text-sm text-gray-400 mt-1">
-            View and manage registered participants.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            placeholder="Search participants..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-[#080b16] border border-[#d4af37]/20 rounded-lg px-3 py-2 text-sm text-white w-full sm:w-72 focus:outline-none focus:border-[#d4af37]"
-          />
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-[#d4af37]/20 bg-[#080b16] px-3 py-2 text-sm text-white"
-          >
-            <option value="all">All Users</option>
-            <option value="active">Active</option>
-            <option value="blocked">Blocked</option>
-          </select>
-        </div>
+    <div className="animate-magic-reveal">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
+        <h3 className="text-3xl font-bold font-harry text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
+          Users ({users.length})
+        </h3>
+        <input
+          placeholder="Search name, email, college…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-2.5 text-sm text-[#f4e8c1] w-full sm:w-80 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all placeholder:text-[#e8d7b5]/30"
+        />
       </div>
 
-      {/* Table */}
-      <div className="bg-[#101522] border border-[#d4af37]/30 rounded-2xl overflow-hidden overflow-x-auto">
+      <div className="parchment-card relative bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl overflow-hidden overflow-x-auto shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
         {loading ? (
           <p className="p-6 text-sm text-gray-400">
             Loading participants...
@@ -144,15 +123,15 @@ const UsersTab = () => {
             No participants match your search.
           </p>
         ) : (
-          <table className="w-full text-sm">
+            <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-[#d4af37]/20">
-                <th className="py-3 px-4">Name</th>
-                <th className="py-3 px-4">Email</th>
-                <th className="py-3 px-4">College</th>
-                <th className="py-3 px-4">Domain</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Actions</th>
+              <tr className="bg-[#d4af37]/10 text-[#d4af37] font-serif tracking-widest text-xs uppercase border-b border-[#d4af37]/30">
+                <th className="py-4 px-6 font-semibold">Name</th>
+                <th className="py-4 px-6 font-semibold">Email</th>
+                <th className="py-4 px-6 font-semibold">College</th>
+                <th className="py-4 px-6 font-semibold">Role</th>
+                <th className="py-4 px-6 font-semibold">Status</th>
+                <th className="py-4 px-6 font-semibold text-right">Actions</th>
               </tr>
             </thead>
 

@@ -131,15 +131,24 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#05070f] text-white">
-      <DashboardNavbar user={user} />
+    <div className="min-h-screen bg-[#080b16] text-white relative overflow-hidden">
+      
+      {/* Cinematic Background & Sparks */}
+      <div className="cinematic-bg-overlay z-0" />
+      <div className="absolute inset-0 bg-hogwarts-grid opacity-[0.15] pointer-events-none z-0" />
+      <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-[#d4af37] rounded-full blur-[1px] animate-star z-0" />
+      <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-[#f4e8c1] rounded-full blur-[2px] animate-float z-0" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-[#d4af37] rounded-full blur-[1px] animate-star z-0" style={{ animationDelay: '2s' }} />
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12 text-center"
-        >
+      <div className="relative z-10 animate-magic-reveal">
+        <DashboardNavbar user={user} />
+
+        <main className="max-w-6xl mx-auto px-6 py-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12 text-center"
+          >
           <p className="font-display font-bold text-[#d4af37] text-xs sm:text-sm tracking-[0.3em] uppercase">
             PARTICIPANT DASHBOARD
           </p>
@@ -423,7 +432,7 @@ const Dashboard = () => {
           />
         )}
       </DetailModal>
-
+      </div>
     </div>
   );
 };

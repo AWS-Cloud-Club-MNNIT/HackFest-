@@ -146,18 +146,18 @@ const TeamsTab = () => {
             No teams found.
           </p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-[#d4af37]/20">
-                <th className="py-3 px-4">Team</th>
-                <th className="py-3 px-4">Event</th>
-                <th className="py-3 px-4">Leader</th>
-                <th className="py-3 px-4">Members</th>
-                <th className="py-3 px-4">Domain</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Checked In</th>
-                <th className="py-3 px-4">Quit / Removed</th>
-                <th className="py-3 px-4"></th>
+              <tr className="bg-[#d4af37]/10 text-[#d4af37] font-serif tracking-widest text-xs uppercase border-b border-[#d4af37]/30">
+                <th className="py-4 px-6 font-semibold">Team</th>
+                <th className="py-4 px-6 font-semibold">Event</th>
+                <th className="py-4 px-6 font-semibold">Leader</th>
+                <th className="py-4 px-6 font-semibold text-center">Members</th>
+                <th className="py-4 px-6 font-semibold">Domain</th>
+                <th className="py-4 px-6 font-semibold">Status</th>
+                <th className="py-4 px-6 font-semibold text-center">Checked In</th>
+                <th className="py-4 px-6 font-semibold text-center">History</th>
+                <th className="py-4 px-6 font-semibold text-right">Actions</th>
               </tr>
             </thead>
 
@@ -179,7 +179,7 @@ const TeamsTab = () => {
                         {team.name}
 
                         {team.lockedBySuperAdmin && (
-                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">
+                          <span className="ml-2 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400">
                             LOCKED
                           </span>
                         )}
@@ -236,7 +236,7 @@ const TeamsTab = () => {
                                 isExpanded ? null : team._id
                               )
                             }
-                            className="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition"
+                            className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
                           >
                             {openQuits.length > 0
                               ? `${openQuits.length} pending`
@@ -251,7 +251,7 @@ const TeamsTab = () => {
                         <button
                           disabled={busyId === team._id}
                           onClick={() => handleToggleLock(team)}
-                          className="text-xs text-[#d4af37] hover:underline mr-3 disabled:opacity-50"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10 mr-2 transition-all disabled:opacity-50"
                         >
                           {team.lockedBySuperAdmin
                             ? "Unlock"
@@ -261,7 +261,7 @@ const TeamsTab = () => {
                         <button
                           disabled={busyId === team._id}
                           onClick={() => handleDelete(team)}
-                          className="text-xs text-red-400 hover:underline disabled:opacity-50"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
                         >
                           Delete
                         </button>
@@ -270,8 +270,8 @@ const TeamsTab = () => {
 
                     {/* Expanded Member History */}
                     {isExpanded && history.length > 0 && (
-                      <tr className="bg-[#080b16]">
-                        <td colSpan={9} className="py-3 px-4">
+                      <tr className="bg-[#080b16]/60 border-b border-[#d4af37]/30 shadow-inner">
+                        <td colSpan={9} className="py-4 px-6">
                           <div className="space-y-2">
                             {history
                               .slice()
@@ -331,7 +331,21 @@ const TeamsTab = () => {
                                       <span className="text-amber-400 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10">
                                         Available to re-add
                                       </span>
-                                    )}
+                                    </div>
+                                    <div>
+                                      {h.rejoined ? (
+                                        <span className="text-emerald-400 font-bold uppercase tracking-wider text-[9px] px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                                          Rejoined
+                                        </span>
+                                      ) : h.userId?.isBlocked ? (
+                                        <span className="text-red-400 font-bold uppercase tracking-wider text-[9px] px-3 py-1.5 rounded-full border border-red-500/30 bg-red-500/10">
+                                          Blocked
+                                        </span>
+                                      ) : (
+                                        <span className="text-amber-400 font-bold uppercase tracking-wider text-[9px] px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
+                                          Available to re-add
+                                        </span>
+                                      )}
                                   </div>
                                 </div>
                               ))}

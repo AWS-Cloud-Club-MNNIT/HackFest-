@@ -156,6 +156,33 @@ h1, h2, h3 {
   animation: magicFloat 6s infinite ease-in-out;
 }
 
+/* Magical Form Input Focus Glow */
+.magic-input-focus {
+  transition: all 0.3s ease;
+}
+.magic-input-focus:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(212, 175, 55, 0.1);
+  background: rgba(16, 24, 43, 0.95);
+}
+
+/* Page Transition / Content Fade */
+.animate-magic-reveal {
+  animation: magicReveal 0.8s ease-out forwards;
+}
+@keyframes magicReveal {
+  0% { opacity: 0; transform: translateY(15px) scale(0.98); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* Cinematic Background Gradient Overlay */
+.cinematic-bg-overlay {
+  background: radial-gradient(circle at center, transparent 0%, #080b16 100%);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

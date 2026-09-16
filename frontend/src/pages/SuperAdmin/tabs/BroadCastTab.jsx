@@ -99,7 +99,7 @@ const BroadcastTab = () => {
             id="broadcast-audience"
             value={audience}
             onChange={(e) => setAudience(e.target.value)}
-            className="w-full mt-1 bg-[#080b16] border border-[#d4af37]/20 rounded-lg px-3 py-2 text-sm text-white"
+            className="w-full mt-2 bg-[#080b16]/80 border border-[#d4af37]/30 rounded-lg px-4 py-3 text-sm text-[#f4e8c1] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition-all cursor-pointer"
           >
             <option value="participants">
               All Participants
