@@ -23,22 +23,6 @@ const DOMAIN_CONFIG = [
 
 const OverviewTab = ({ setActiveMenu }) => {
   const [dashboard, setDashboard] = useState(null);
-const StatCard = ({ label, value, highlight }) => (
-  <div className="parchment-card relative overflow-hidden bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl p-6 shadow-[0_0_20px_rgba(212,175,55,0.05)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] hover:-translate-y-1">
-    <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#d4af37]/5 blur-2xl pointer-events-none" />
-    <p className="text-[#e8d7b5]/60 text-xs font-bold uppercase tracking-[0.2em]">{label}</p>
-    <h3
-      className={`text-4xl font-harry tracking-wide mt-3 ${
-        highlight ? "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]" : "text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]"
-      }`}
-    >
-      {value}
-    </h3>
-  </div>
-);
-
-const OverviewTab = ({ onNavigateTab }) => {
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -184,7 +168,9 @@ const OverviewTab = ({ onNavigateTab }) => {
               </span>
             </div>
 
-            <p className="text-sm text-gray-400">{stat.title}</p>
+            <p className="text-sm text-gray-400">
+              {stat.title}
+            </p>
 
             <h3 className="mt-2 text-3xl font-bold text-white">
               {stat.value}
@@ -253,7 +239,9 @@ const OverviewTab = ({ onNavigateTab }) => {
                   <div
                     className="h-full rounded-full bg-purple-500 transition-all duration-500"
                     style={{
-                      width: `${(domain.participants / maxParticipants) * 100}%`,
+                      width: `${
+                        (domain.participants / maxParticipants) * 100
+                      }%`,
                     }}
                   />
                 </div>
@@ -266,7 +254,9 @@ const OverviewTab = ({ onNavigateTab }) => {
       {/* Additional Statistics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">Checked-in Teams</p>
+          <p className="text-sm text-gray-400">
+            Checked-in Teams
+          </p>
 
           <h3 className="mt-2 text-2xl font-bold text-white">
             {dashboard.checkedInTeams || 0}
@@ -274,7 +264,9 @@ const OverviewTab = ({ onNavigateTab }) => {
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">Forming Teams</p>
+          <p className="text-sm text-gray-400">
+            Forming Teams
+          </p>
 
           <h3 className="mt-2 text-2xl font-bold text-white">
             {dashboard.formingTeams || 0}
@@ -282,7 +274,9 @@ const OverviewTab = ({ onNavigateTab }) => {
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">Complete Teams</p>
+          <p className="text-sm text-gray-400">
+            Complete Teams
+          </p>
 
           <h3 className="mt-2 text-2xl font-bold text-white">
             {dashboard.completeTeams || 0}
@@ -291,61 +285,56 @@ const OverviewTab = ({ onNavigateTab }) => {
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-        <h3 className="mb-4 text-lg font-semibold text-white">
+      <div className="parchment-card relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-[#101522]/80 p-8 shadow-xl">
+        <h3 className="mb-6 text-2xl font-harry tracking-wide text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
           Quick Actions
         </h3>
-      <div className="parchment-card relative overflow-hidden bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl p-8 shadow-xl mt-8">
-        <h3 className="text-2xl font-harry tracking-wide text-[#f4e8c1] mb-6 drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">Quick Actions</h3>
 
         <div className="flex flex-wrap gap-3">
+          {/* Manage Events */}
           <button
             onClick={() => setActiveMenu?.("events")}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition hover:bg-blue-700"
+            className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
-            Manage Events
-          </button>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
-          <button
-            onClick={() => setActiveMenu?.("teams")}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20"
-          >
-            Manage Teams
-          </button>
+            <h4 className="relative z-10 font-serif font-semibold text-[#f4e8c1]">
+              Manage Events
+            </h4>
 
-          <button
-            onClick={() => setActiveMenu?.("broadcast")}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20"
-          >
-            Broadcast Message
-            onClick={() => onNavigateTab("events")}
-            className="group relative overflow-hidden border border-[#d4af37]/20 rounded-xl p-5 bg-[#080b16]/60 text-left transition-all hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5 hover:-translate-y-1"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h4 className="font-semibold text-[#f4e8c1] font-serif relative z-10">Manage Events</h4>
-            <p className="text-sm text-[#e8d7b5]/60 mt-2 relative z-10">
+            <p className="relative z-10 mt-2 text-sm text-[#e8d7b5]/60">
               Create and configure hackathon events.
             </p>
           </button>
 
+          {/* Manage Teams */}
           <button
-            onClick={() => onNavigateTab("teams")}
-            className="group relative overflow-hidden border border-[#d4af37]/20 rounded-xl p-5 bg-[#080b16]/60 text-left transition-all hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5 hover:-translate-y-1"
+            onClick={() => setActiveMenu?.("teams")}
+            className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h4 className="font-semibold text-[#f4e8c1] font-serif relative z-10">Manage Teams</h4>
-            <p className="text-sm text-[#e8d7b5]/60 mt-2 relative z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+            <h4 className="relative z-10 font-serif font-semibold text-[#f4e8c1]">
+              Manage Teams
+            </h4>
+
+            <p className="relative z-10 mt-2 text-sm text-[#e8d7b5]/60">
               Lock rosters, review check-ins, remove teams.
             </p>
           </button>
 
+          {/* Send Announcement */}
           <button
-            onClick={() => onNavigateTab("broadcast")}
-            className="group relative overflow-hidden border border-[#d4af37]/20 rounded-xl p-5 bg-[#080b16]/60 text-left transition-all hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5 hover:-translate-y-1"
+            onClick={() => setActiveMenu?.("broadcast")}
+            className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h4 className="font-semibold text-[#f4e8c1] font-serif relative z-10">Send Announcement</h4>
-            <p className="text-sm text-[#e8d7b5]/60 mt-2 relative z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+            <h4 className="relative z-10 font-serif font-semibold text-[#f4e8c1]">
+              Send Announcement
+            </h4>
+
+            <p className="relative z-10 mt-2 text-sm text-[#e8d7b5]/60">
               Broadcast a notification to participants.
             </p>
           </button>

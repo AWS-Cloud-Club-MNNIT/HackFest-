@@ -331,6 +331,7 @@ const TeamsTab = () => {
                                       <span className="text-amber-400 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10">
                                         Available to re-add
                                       </span>
+                                    )}
                                     </div>
                                     <div>
                                       {h.rejoined ? (
