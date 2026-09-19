@@ -48,7 +48,7 @@ export default function TeamDetail({ team, actions }) {
       <div className="bg-[#05070f] rounded-xl p-5 border border-[#d4af37]/10">
         <h4 className="text-sm uppercase tracking-widest text-[#d4af37] mb-4 font-semibold border-b border-[#d4af37]/20 pb-2">Roster</h4>
         
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
            {/* If populated members exist */}
            {team.members && team.members.length > 0 && typeof team.members[0] === 'object' ? (
              team.members.map(member => {
