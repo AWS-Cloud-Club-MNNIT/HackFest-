@@ -170,6 +170,19 @@ export const HOUSES_DATA = [
 
 export default function HouseDomains() {
   const [hoveredHouse, setHoveredHouse] = useState(null)
+  const [activeEvent, setActiveEvent] = useState(null)
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await API.get('/events/active')
+        setActiveEvent(res.data)
+      } catch (err) {
+        console.error("Failed to fetch active event domains", err)
+      }
+    }
+    fetchEvent()
+  }, [])
 
   return (
     <section

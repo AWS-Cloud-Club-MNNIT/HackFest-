@@ -6,6 +6,8 @@ import { Server } from 'socket.io';
 import app from './app.js';
 import connectDB from './src/config/db.js';
 
+import { startKeepAliveCron } from './cron.js';
+
 // Connect to MongoDB
 connectDB();
 
@@ -45,4 +47,7 @@ app.set('io', io);
 // Start the server
 server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  
+  // Start the Render keep-alive cron job
+  startKeepAliveCron();
 });
