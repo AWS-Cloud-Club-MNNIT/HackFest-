@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import API from '../services/api'
 import { motion } from 'framer-motion'
 import Reveal from './common/Reveal'
 
@@ -219,7 +220,7 @@ export default function HouseDomains() {
 
         {/* Compact Banners Grid */}
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          {HOUSES_DATA.map((house) => {
+          {HOUSES_DATA.map((house, idx) => {
             const isHovered = hoveredHouse === house.id
             const isAnyHovered = hoveredHouse !== null
 
@@ -282,14 +283,14 @@ export default function HouseDomains() {
                     </div>
 
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider uppercase border ${house.badgeBg} shadow-sm`}>
-                      {house.domainCode}
+                      {activeEvent?.domains?.[idx] || house.domainCode}
                     </span>
                   </div>
 
                   {/* Middle Content: Domain Title & Tagline */}
                   <div className="mt-3.5">
                     <h4 className={`text-base sm:text-lg font-bold font-display ${house.textColor} tracking-wide group-hover:text-[#ffffff] transition-colors`}>
-                      {house.domainTitle}
+                      {activeEvent?.domains?.[idx] || house.domainTitle}
                     </h4>
 
                     <p className="mt-1 font-serif text-xs sm:text-sm italic text-[#e8d7b5]/85">
