@@ -1,25 +1,5 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import API from "../../../services/api";
-
-const DOMAIN_CONFIG = [
-  {
-    key: "Full-Stack & Interactive Systems",
-    shortName: "Full-Stack",
-  },
-  {
-    key: "Cybersecurity",
-    shortName: "Cybersecurity",
-  },
-  {
-    key: "AI & Machine Learning",
-    shortName: "AI & ML",
-  },
-  {
-    key: "Blockchain & Web3",
-    shortName: "Blockchain",
-  },
-];
 
 const OverviewTab = ({ setActiveMenu }) => {
   const [dashboard, setDashboard] = useState(null);
@@ -53,12 +33,20 @@ const OverviewTab = ({ setActiveMenu }) => {
   const domainData = useMemo(() => {
     const analytics = dashboard?.domainAnalytics || {};
 
-    return DOMAIN_CONFIG.map((domain) => {
-      const data = analytics[domain.key] || {};
+    // Domain names now come live from the event config (eventDomains),
+    // not a hardcoded list — so renaming a domain in Event Configuration
+    // shows up here immediately. Falls back to whatever keys exist in
+    // domainAnalytics if eventDomains wasn't returned for some reason.
+    const domainNames =
+      dashboard?.eventDomains?.length > 0
+        ? dashboard.eventDomains
+        : Object.keys(analytics);
+
+    return domainNames.map((name) => {
+      const data = analytics[name] || {};
 
       return {
-        name: domain.key,
-        shortName: domain.shortName,
+        name,
         teams: Number(data.teams || 0),
         participants: Number(data.participants || 0),
       };
@@ -191,64 +179,71 @@ const OverviewTab = ({ setActiveMenu }) => {
           </p>
         </div>
 
-        <div className="space-y-8">
-          {domainData.map((domain) => (
-            <div key={domain.name} className="space-y-4">
-              {/* Domain Heading */}
-              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-                <h4 className="font-medium text-gray-200">
-                  {domain.name}
-                </h4>
+        {domainData.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No domains configured yet. Set them up in Event
+            Configuration.
+          </p>
+        ) : (
+          <div className="space-y-8">
+            {domainData.map((domain) => (
+              <div key={domain.name} className="space-y-4">
+                {/* Domain Heading */}
+                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                  <h4 className="font-medium text-gray-200">
+                    {domain.name}
+                  </h4>
 
-                <div className="flex gap-3 text-xs">
-                  <span className="rounded-full bg-blue-500/10 px-3 py-1 text-blue-400">
-                    {domain.teams} Teams
-                  </span>
+                  <div className="flex gap-3 text-xs">
+                    <span className="rounded-full bg-blue-500/10 px-3 py-1 text-blue-400">
+                      {domain.teams} Teams
+                    </span>
 
-                  <span className="rounded-full bg-purple-500/10 px-3 py-1 text-purple-400">
-                    {domain.participants} Participants
-                  </span>
+                    <span className="rounded-full bg-purple-500/10 px-3 py-1 text-purple-400">
+                      {domain.participants} Participants
+                    </span>
+                  </div>
+                </div>
+
+                {/* Teams Bar */}
+                <div>
+                  <div className="mb-1 flex justify-between text-xs text-gray-400">
+                    <span>Teams</span>
+                    <span>{domain.teams}</span>
+                  </div>
+
+                  <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                      style={{
+                        width: `${(domain.teams / maxTeams) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Participants Bar */}
+                <div>
+                  <div className="mb-1 flex justify-between text-xs text-gray-400">
+                    <span>Participants</span>
+                    <span>{domain.participants}</span>
+                  </div>
+
+                  <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-purple-500 transition-all duration-500"
+                      style={{
+                        width: `${
+                          (domain.participants / maxParticipants) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-
-              {/* Teams Bar */}
-              <div>
-                <div className="mb-1 flex justify-between text-xs text-gray-400">
-                  <span>Teams</span>
-                  <span>{domain.teams}</span>
-                </div>
-
-                <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
-                    style={{
-                      width: `${(domain.teams / maxTeams) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Participants Bar */}
-              <div>
-                <div className="mb-1 flex justify-between text-xs text-gray-400">
-                  <span>Participants</span>
-                  <span>{domain.participants}</span>
-                </div>
-
-                <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full bg-purple-500 transition-all duration-500"
-                    style={{
-                      width: `${
-                        (domain.participants / maxParticipants) * 100
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Additional Statistics */}

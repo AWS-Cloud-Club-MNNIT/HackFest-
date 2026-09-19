@@ -120,8 +120,6 @@ const getAllEvents = async (req, res) => {
 
     const filter = {};
 
-    // Status filter is supported only if the field exists
-    // in the Event schema.
     if (status) {
       filter.status = status;
     }
@@ -200,29 +198,52 @@ const updateEvent = async (req, res) => {
       });
     }
 
-    const updatedData = {
-      ...req.body,
-      title: req.body.title.trim(),
-      description: req.body.description?.trim() || "",
-      domains: req.body.domains.map((domain) => domain.trim()),
-      teamSizeMin: Number(req.body.teamSizeMin),
-      teamSizeMax: Number(req.body.teamSizeMax),
-    };
-
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      updatedData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    // Fetch the actual document and mutate + .save() instead of
+    // findByIdAndUpdate(). Schema validators (like the teamSizeMax
+    // cross-check against teamSizeMin) rely on `this` pointing to the
+    // document — on findByIdAndUpdate, `this` is the Query object instead,
+    // so `this.teamSizeMin` comes back undefined and the check always fails.
+    const event = await Event.findById(req.params.id);
 
     if (!event) {
       return res.status(404).json({
         success: false,
         message: "Event not found",
       });
+    }
+
+    const oldDomains = event.domains;
+    const newDomains = req.body.domains.map((domain) => domain.trim());
+
+    Object.assign(event, {
+      ...req.body,
+      title: req.body.title.trim(),
+      description: req.body.description?.trim() || "",
+      domains: newDomains,
+      teamSizeMin: Number(req.body.teamSizeMin),
+      teamSizeMax: Number(req.body.teamSizeMax),
+    });
+
+    await event.save();
+
+    // Positional rename cascade: if domain[i] changed name, update every
+    // Team on this event currently tagged with the old name so team.domain
+    // stays in sync with the event config instead of pointing at a
+    // now-nonexistent domain string.
+    let teamsReassigned = 0;
+
+    for (let i = 0; i < oldDomains.length; i++) {
+      const oldName = oldDomains[i];
+      const newName = newDomains[i];
+
+      if (oldName && newName && oldName !== newName) {
+        const result = await Team.updateMany(
+          { eventId: event._id, domain: oldName },
+          { $set: { domain: newName } }
+        );
+
+        teamsReassigned += result.modifiedCount || 0;
+      }
     }
 
     await logActivity({
@@ -232,7 +253,8 @@ const updateEvent = async (req, res) => {
       targetId: event._id,
       description: `Updated event: ${event.title}`,
       metadata: {
-      updatedFields: req.body,
+        updatedFields: req.body,
+        teamsReassigned,
       },
     });
 
@@ -240,6 +262,7 @@ const updateEvent = async (req, res) => {
       success: true,
       message: "Event updated successfully",
       event,
+      teamsReassigned,
     });
   } catch (error) {
     console.error("Update event error:", error);
@@ -373,12 +396,29 @@ const getDashboardOverview = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const totalTeams = await Team.countDocuments();
 
+    // EventsTab always edits the most recently created event, so mirror
+    // that here — this keeps the Overview's domain list in sync with
+    // whatever the admin last configured, even with zero teams so far.
+    const currentEvent = await Event.findOne()
+      .sort({ createdAt: -1 })
+      .select("domains")
+      .lean();
+
+    const eventDomains = currentEvent?.domains || [];
+
     const teams = await Team.find()
       .select("domain members status checkedIn")
       .lean();
 
     const domains = {};
     const domainAnalytics = {};
+
+    // Seed every current event domain at zero so newly renamed / still-empty
+    // domains show up in the Overview instead of being silently omitted.
+    eventDomains.forEach((domain) => {
+      domains[domain] = 0;
+      domainAnalytics[domain] = { teams: 0, participants: 0 };
+    });
 
     let checkedInTeams = 0;
     let completeTeams = 0;
@@ -436,6 +476,7 @@ const getDashboardOverview = async (req, res) => {
         activeEvents,
         totalUsers,
         totalTeams,
+        eventDomains,
         domains,
         domainAnalytics,
         totalAssignedParticipants,
@@ -891,9 +932,6 @@ const unlockTeam = async (req, res) => {
       });
     }
 
-    // Recompute status instead of assuming "complete": a team that was
-    // force-locked while still under-strength should go back to "forming",
-    // not be marked complete just because it's being unlocked.
     const minSize = team.eventId?.teamSizeMin || 1;
     const currentSize = team.members.length;
 
@@ -1019,7 +1057,6 @@ const forceAddMember = async (req, res) => {
       });
     }
 
-    // teamSizeMax lives on the Event, not on the Team document itself.
     const teamSizeMax = team.eventId?.teamSizeMax;
 
     if (teamSizeMax && team.members.length >= teamSizeMax) {
