@@ -42,7 +42,7 @@ import FindTeam from './pages/FindTeam'
 import MyTeam from './pages/MyTeam'
 import QRPass from './pages/QRPass'
 import OrganizerScan from './pages/OrganizerScan'
-import PublicTeamScan from './pages/PublicTeamScan'
+
 
 // =====================================================
 // Wrapper for the smooth layered card parallax effect
@@ -277,10 +277,7 @@ function App() {
           element={<OrganizerScan />}
         />
 
-        <Route
-          path="/scan/:qrToken"
-          element={<PublicTeamScan />}
-        />
+
 
         {/* ============================================
             AUTHENTICATION

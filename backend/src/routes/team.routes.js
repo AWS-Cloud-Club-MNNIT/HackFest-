@@ -6,7 +6,6 @@ import {
   removeMember, 
   leaveTeam, 
   getQRCode, 
-  scanQR,
   toggleLookingForTeammates,
   toggleStatus,
   getAvailableTeams
@@ -41,8 +40,5 @@ router.post('/:id/leave', protect, leaveTeam);
 
 // GET: Get QR Code base64 image
 router.get('/:id/qr', protect, getQRCode);
-
-// GET: Public/Organizer QR Scan endpoint (No protect required)
-router.get('/scan/:qrToken', scanQR);
 
 export default router;

@@ -477,6 +477,26 @@ function SuperAdminDashboard() {
           ================================================= */}
 
           <div className="flex items-center gap-4">
+            {/* QR Scanner */}
+            <button
+              onClick={() => window.open("/organizer/scan", "_blank")}
+              className="
+                hidden sm:flex items-center gap-2
+                rounded-lg
+                border border-[#c9a646]/50
+                bg-[#c9a646]/10
+                px-4 py-2
+                text-xs font-bold text-[#d4af37]
+                shadow-[0_0_10px_rgba(212,175,55,0.15)]
+                transition
+                hover:bg-[#c9a646]/20
+                hover:text-[#e7d49d]
+                hover:shadow-[0_0_20px_rgba(212,175,55,0.3)]
+              "
+            >
+              <span className="text-sm">📷</span> Scanner
+            </button>
+
             {/* Refresh */}
             <button
               onClick={handleRefresh}
@@ -1257,6 +1277,13 @@ function Overview({
               title="View Teams"
               description="Manage hackathon teams"
               onClick={() => onNavigate("teams")}
+            />
+
+            <QuickAction
+              icon="📷"
+              title="QR Scanner"
+              description="Scan QR codes for team check-in"
+              onClick={() => window.location.href = "/organizer/scan"}
             />
 
             <QuickAction

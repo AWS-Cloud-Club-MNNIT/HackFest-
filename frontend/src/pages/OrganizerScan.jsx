@@ -45,8 +45,12 @@ export default function OrganizerScan() {
 
       scanner.render(
         async (decodedText) => {
-          // Pause scanner to avoid multiple hits
-          scanner.pause();
+          // Pause scanner to avoid multiple hits if possible
+          try {
+            scanner.pause();
+          } catch (e) {
+            // Ignore error if not scanning from camera (e.g., file upload)
+          }
           handleQRScan(decodedText, scanner);
         },
         (error) => {
@@ -69,14 +73,16 @@ export default function OrganizerScan() {
         const parts = decodedText.split('/scan/');
         token = parts[parts.length - 1];
       }
-      const res = await API.get(`/teams/scan/${token}`);
+      const res = await API.post('/super-admin/verify-qr', { qrToken: token });
       setScannedTeam(res.data);
     } catch (error) {
       setScanError(error.response?.data?.message || "Invalid QR Code");
     } finally {
       // Resume scanner if error, else wait for check-in action
       if (scanner && !scannedTeam) {
-        setTimeout(() => scanner.resume(), 2000);
+        setTimeout(() => {
+          try { scanner.resume(); } catch (e) {}
+        }, 2000);
       }
     }
   };
@@ -121,8 +127,51 @@ export default function OrganizerScan() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* Scanner Area */}
-          <div key={`scanner-wrapper-${scanSessionKey}`} className="bg-[#10182b] border border-[#d4af37]/30 rounded-2xl p-4 shadow-xl overflow-hidden">
-            <div id="reader" className="w-full bg-black rounded-xl overflow-hidden border border-[#d4af37]/20"></div>
+          <div key={`scanner-wrapper-${scanSessionKey}`} className="bg-[#10182b] border border-[#d4af37]/30 rounded-2xl p-4 shadow-xl overflow-hidden relative">
+            <style dangerouslySetInnerHTML={{__html: `
+              #reader {
+                border: none !important;
+              }
+              #reader__dashboard_section_csr span {
+                color: #e8d7b5 !important;
+                font-family: inherit;
+              }
+              #reader__dashboard_section_swaplink {
+                color: #d4af37 !important;
+                text-decoration: underline !important;
+                margin-top: 10px;
+                display: block;
+              }
+              #reader button {
+                background-color: #d4af37 !important;
+                color: #10182b !important;
+                border: none !important;
+                padding: 10px 20px !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+                margin: 10px 5px !important;
+                transition: all 0.2s !important;
+                font-family: inherit;
+              }
+              #reader button:hover {
+                background-color: #c9a646 !important;
+                transform: translateY(-1px);
+              }
+              #reader__dashboard_section_csr div {
+                border: 2px dashed #d4af37 !important;
+                border-radius: 12px;
+                padding: 1rem !important;
+                background-color: rgba(212, 175, 55, 0.05);
+              }
+              #reader__dashboard_section_csr input[type="file"] {
+                color: #e8d7b5 !important;
+              }
+              #reader img {
+                margin: auto;
+              }
+            `}} />
+            <div id="reader" className="w-full bg-[#080b16] rounded-xl overflow-hidden"></div>
           </div>
 
           {/* Results Area */}
