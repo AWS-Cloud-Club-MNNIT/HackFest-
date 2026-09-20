@@ -174,7 +174,7 @@ const DashboardNavbar = ({ user: propUser }) => {
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-4 w-80 max-h-[400px] bg-[#10182b]/95 backdrop-blur-xl border border-[#d4af37]/40 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="absolute right-[-16px] sm:right-0 mt-4 w-[calc(100vw-32px)] sm:w-80 max-w-[360px] max-h-[400px] bg-[#10182b]/95 backdrop-blur-xl border border-[#d4af37]/40 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
                 <div className="p-4 border-b border-[#d4af37]/20 flex justify-between items-center bg-gradient-to-r from-[#10182b] to-[#1a233a]">
                   <h3 className="text-[#d4af37] font-semibold text-sm tracking-widest uppercase">Notifications</h3>
                   {unreadCount > 0 && (
