@@ -333,6 +333,22 @@ const OverviewTab = ({ setActiveMenu }) => {
               Broadcast a notification to participants.
             </p>
           </button>
+
+          {/* QR Scanner */}
+          <button
+            onClick={() => window.open("/organizer/scan", "_blank")}
+            className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+            <h4 className="relative z-10 font-serif font-semibold text-[#f4e8c1]">
+              QR Scanner
+            </h4>
+
+            <p className="relative z-10 mt-2 text-sm text-[#e8d7b5]/60">
+              Scan participant QR codes for check-in.
+            </p>
+          </button>
         </div>
       </div>
     </div>

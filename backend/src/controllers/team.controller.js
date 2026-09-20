@@ -245,10 +245,17 @@ export const getQRCode = async (req, res) => {
       await team.save();
     }
 
-    const qrImageBase64 = await QRCode.toDataURL(team.qrToken);
+    const qrImageBase64 = await QRCode.toDataURL(team.qrToken, {
+      width: 400,
+      margin: 4,
+      color: {
+        dark: '#10182b',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'H'
+    });
     
     res.status(200).json({ 
-      qrToken: team.qrToken,
       qrImage: qrImageBase64 
     });
   } catch (error) {
@@ -256,19 +263,7 @@ export const getQRCode = async (req, res) => {
   }
 };
 
-// GET /api/teams/scan/:qrToken
-export const scanQR = async (req, res) => {
-  try {
-    const { qrToken } = req.params;
-    const team = await Team.findOne({ qrToken }).populate('members', '-passwordHash');
-    
-    if (!team) return res.status(404).json({ message: 'Invalid QR Token' });
-    
-    res.status(200).json(team);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+
 
 // PATCH /api/teams/:id/looking-for-teammates
 export const toggleLookingForTeammates = async (req, res) => {
@@ -331,6 +326,10 @@ export const toggleStatus = async (req, res) => {
       
       team.status = 'complete';
       team.lookingForTeammates = false; // Disable looking for teammates
+      
+      if (!team.qrToken) {
+        team.qrToken = crypto.randomBytes(20).toString('hex');
+      }
     } else {
       team.status = 'forming';
     }

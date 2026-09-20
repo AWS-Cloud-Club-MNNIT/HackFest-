@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { QRCodeCanvas } from "qrcode.react";
 import API from "../services/api";
 import DashboardNavbar from "../components/DashboardNavbar";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -10,7 +9,7 @@ export default function QRPass() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [team, setTeam] = useState(null);
-  const [qrToken, setQrToken] = useState(null);
+  const [qrImage, setQrImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export default function QRPass() {
 
         // Fetch QR token securely
         const qrRes = await API.get(`/teams/${userData.teamId}/qr`);
-        setQrToken(qrRes.data.qrToken);
+        setQrImage(qrRes.data.qrImage);
 
       } catch (error) {
         toast.error("Failed to load QR pass securely.");
@@ -84,14 +83,12 @@ export default function QRPass() {
             {team.domain}
           </p>
 
-          <div className="bg-white p-4 rounded-xl shadow-inner inline-block mb-8 relative">
-            <QRCodeCanvas 
-              value={qrToken ? `${window.location.origin}/scan/${qrToken}` : "invalid"} 
-              size={200}
-              level={"H"}
-              fgColor={"#10182b"}
-              bgColor={"#ffffff"}
-            />
+          <div className="bg-white p-4 rounded-xl shadow-inner inline-block mb-8 relative w-[232px] h-[232px]">
+            {qrImage ? (
+              <img src={qrImage} alt="Secure QR Pass" className="w-full h-full object-contain" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">Loading QR...</div>
+            )}
             {team.checkedIn && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center text-green-700 font-bold rounded-xl">
                 <CheckCircle2 className="w-12 h-12 mb-2" />

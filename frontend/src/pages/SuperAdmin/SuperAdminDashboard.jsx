@@ -449,7 +449,7 @@ function SuperAdminDashboard() {
           shadow-[0_4px_30px_rgba(0,0,0,0.5)]
         "
       >
-        <div className="flex h-full items-center justify-between px-6">
+        <div className="flex h-full items-center justify-between px-3 sm:px-6">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <img
@@ -476,21 +476,46 @@ function SuperAdminDashboard() {
               RIGHT HEADER
           ================================================= */}
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* QR Scanner */}
+            <button
+              onClick={() => window.open("/organizer/scan", "_blank")}
+              className="
+                flex items-center justify-center gap-2
+                rounded-lg
+                border border-[#c9a646]/50
+                bg-[#c9a646]/10
+                h-10 px-3 sm:px-4
+                text-xs font-bold text-[#d4af37]
+                shadow-[0_0_10px_rgba(212,175,55,0.15)]
+                transition
+                hover:bg-[#c9a646]/20
+                hover:text-[#e7d49d]
+                hover:shadow-[0_0_20px_rgba(212,175,55,0.3)]
+              "
+              aria-label="QR Scanner"
+            >
+              <span className="text-sm sm:text-base">📷</span> 
+              <span className="hidden sm:inline">Scanner</span>
+            </button>
+
             {/* Refresh */}
             <button
               onClick={handleRefresh}
               className="
+                flex items-center justify-center
                 rounded-lg
                 border border-[#c9a646]/20
-                px-4 py-2
-                text-xs text-[#aab3c4]
+                h-10 px-3 sm:px-4
+                text-sm sm:text-xs text-[#aab3c4]
                 transition
                 hover:border-[#c9a646]/50
                 hover:text-[#e7d49d]
               "
+              aria-label="Refresh"
             >
-              ↻ Refresh
+              <span className="sm:hidden text-lg">↻</span>
+              <span className="hidden sm:inline">↻ Refresh</span>
             </button>
 
             {/* =================================================
@@ -1257,6 +1282,13 @@ function Overview({
               title="View Teams"
               description="Manage hackathon teams"
               onClick={() => onNavigate("teams")}
+            />
+
+            <QuickAction
+              icon="📷"
+              title="QR Scanner"
+              description="Scan QR codes for team check-in"
+              onClick={() => window.location.href = "/organizer/scan"}
             />
 
             <QuickAction

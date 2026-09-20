@@ -91,6 +91,9 @@ const teamSchema = new mongoose.Schema(
 // A compound index ensures no two teams can have the same name in the same event.
 teamSchema.index({ name: 1, eventId: 1 }, { unique: true });
 
+// Ensure qrToken is unique across all teams, but only for teams that have one (sparse)
+teamSchema.index({ qrToken: 1 }, { unique: true, sparse: true });
+
 const Team = mongoose.model('Team', teamSchema);
 
 export default Team;

@@ -22,6 +22,7 @@ import {
   forceAddMember,
   forceRemoveMember,
   markCheckedIn,
+  verifyQR,
   extendDeadline,
 } from "../controllers/superAdmin.controller.js";
 
@@ -69,6 +70,7 @@ router.delete("/teams/:id", isSuperAdmin, deleteTeam);
 router.post("/teams/:id/members", isSuperAdmin, forceAddMember);
 router.delete("/teams/:id/members/:userId", isSuperAdmin, forceRemoveMember);
 router.patch("/teams/:id/checkin", isSuperAdmin, markCheckedIn);
+router.post("/verify-qr", isSuperAdmin, verifyQR);
 
 // ===============================
 // NOTIFICATIONS (BROADCAST)

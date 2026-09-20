@@ -72,6 +72,23 @@ const DashboardNavbar = ({ user: propUser }) => {
     await markAsRead(id);
   };
 
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read) {
+      await markAsRead(notif._id);
+    }
+    
+    // Redirect based on notification type
+    const myTeamEvents = ['request_received', 'member_joined', 'member_left', 'domain_changed', 'invite_accepted'];
+    
+    if (myTeamEvents.includes(notif.type)) {
+      navigate('/team/my-team');
+    } else if (notif.type === 'invite_received') {
+      navigate('/dashboard'); 
+    }
+    
+    setShowNotifications(false);
+  };
+
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
   };
@@ -122,21 +139,29 @@ const DashboardNavbar = ({ user: propUser }) => {
 
         {/* Floating Pill Navigation */}
         <div className="hidden md:flex items-center gap-5 border border-[#d4af37]/25 rounded-full bg-[#080b16]/85 px-6 py-2 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
-          <Link to="/dashboard" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
-            Dashboard
-          </Link>
-          {user?.teamId ? (
-            <Link to="/team/my-team" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
-              My Team
+          {user?.role === 'super_admin' ? (
+            <Link to="/super-admin" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
+              Super Admin Dashboard
             </Link>
           ) : (
             <>
-              <Link to="/team/create" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
-                Create Team
+              <Link to="/dashboard" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
+                Dashboard
               </Link>
-              <Link to="/team/find" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
-                Find Team
-              </Link>
+              {user?.teamId ? (
+                <Link to="/team/my-team" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
+                  My Team
+                </Link>
+              ) : (
+                <>
+                  <Link to="/team/create" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
+                    Create Team
+                  </Link>
+                  <Link to="/team/find" className="text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#d4af37] hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.6)] transition-all duration-300">
+                    Find Team
+                  </Link>
+                </>
+              )}
             </>
           )}
         </div>
@@ -157,7 +182,7 @@ const DashboardNavbar = ({ user: propUser }) => {
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-4 w-80 max-h-[400px] bg-[#10182b]/95 backdrop-blur-xl border border-[#d4af37]/40 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="absolute right-[-16px] sm:right-0 mt-4 w-[calc(100vw-32px)] sm:w-80 max-w-[360px] max-h-[400px] bg-[#10182b]/95 backdrop-blur-xl border border-[#d4af37]/40 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
                 <div className="p-4 border-b border-[#d4af37]/20 flex justify-between items-center bg-gradient-to-r from-[#10182b] to-[#1a233a]">
                   <h3 className="text-[#d4af37] font-semibold text-sm tracking-widest uppercase">Notifications</h3>
                   {unreadCount > 0 && (
@@ -183,7 +208,7 @@ const DashboardNavbar = ({ user: propUser }) => {
                     notifications.map((notif) => (
                       <div
                         key={notif._id}
-                        onClick={() => !notif.read && handleMarkAsRead(notif._id)}
+                        onClick={() => handleNotificationClick(notif)}
                         className={`p-3 rounded-xl mb-2 flex gap-3 cursor-pointer transition-all duration-300 ${
                           notif.read
                             ? "opacity-60 hover:bg-white/5"
@@ -229,21 +254,29 @@ const DashboardNavbar = ({ user: propUser }) => {
       {/* Mobile Navigation Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-[73px] left-0 right-0 bg-[#080b16]/95 backdrop-blur-xl border-b border-[#d4af37]/30 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-40 p-5 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
-          <Link onClick={() => setMobileMenuOpen(false)} to="/dashboard" className="text-sm font-bold tracking-wider text-[#e8d7b5] border-l-2 border-[#d4af37] pl-3 py-1">
-            Dashboard
-          </Link>
-          {user?.teamId ? (
-            <Link onClick={() => setMobileMenuOpen(false)} to="/team/my-team" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
-              My Team
+          {user?.role === 'super_admin' ? (
+            <Link onClick={() => setMobileMenuOpen(false)} to="/super-admin" className="text-sm font-bold tracking-wider text-[#e8d7b5] border-l-2 border-[#d4af37] pl-3 py-1">
+              Super Admin Dashboard
             </Link>
           ) : (
             <>
-              <Link onClick={() => setMobileMenuOpen(false)} to="/team/create" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
-                Create Team
+              <Link onClick={() => setMobileMenuOpen(false)} to="/dashboard" className="text-sm font-bold tracking-wider text-[#e8d7b5] border-l-2 border-[#d4af37] pl-3 py-1">
+                Dashboard
               </Link>
-              <Link onClick={() => setMobileMenuOpen(false)} to="/team/find" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
-                Find Team
-              </Link>
+              {user?.teamId ? (
+                <Link onClick={() => setMobileMenuOpen(false)} to="/team/my-team" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+                  My Team
+                </Link>
+              ) : (
+                <>
+                  <Link onClick={() => setMobileMenuOpen(false)} to="/team/create" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+                    Create Team
+                  </Link>
+                  <Link onClick={() => setMobileMenuOpen(false)} to="/team/find" className="text-sm font-semibold tracking-wide text-[#e8d7b5]/80 hover:text-[#d4af37] pl-3 py-1">
+                    Find Team
+                  </Link>
+                </>
+              )}
             </>
           )}
           <div className="border-t border-[#d4af37]/20 my-2 pt-4">

@@ -1172,23 +1172,75 @@ const forceRemoveMember = async (req, res) => {
 };
 
 // ===============================
-// MARK CHECKED IN
+// VERIFY QR
 // ===============================
-const markCheckedIn = async (req, res) => {
+const verifyQR = async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id);
+    const { qrToken } = req.body;
+    
+    if (!qrToken) {
+      return res.status(400).json({
+        success: false,
+        message: "QR Token is required",
+      });
+    }
+
+    const team = await Team.findOne({ qrToken })
+      .populate("members", "name college")
+      .populate("eventId", "title domains");
 
     if (!team) {
       return res.status(404).json({
         success: false,
-        message: "Team not found",
+        message: "Invalid QR Token or Registration Not Found",
       });
     }
 
-    team.checkedIn = true;
-    team.checkedInAt = new Date();
+    if (team.status !== "complete") {
+      return res.status(400).json({
+        success: false,
+        message: "Registration not completed for this QR",
+      });
+    }
 
-    await team.save();
+    res.status(200).json(team);
+  } catch (error) {
+    console.error("Verify QR error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to verify QR",
+      error: error.message,
+    });
+  }
+};
+
+// ===============================
+// MARK CHECKED IN
+// ===============================
+const markCheckedIn = async (req, res) => {
+  try {
+    const team = await Team.findOneAndUpdate(
+      { _id: req.params.id, checkedIn: false },
+      { checkedIn: true, checkedInAt: new Date() },
+      { new: true }
+    );
+
+    if (!team) {
+      const existingTeam = await Team.findById(req.params.id);
+      if (!existingTeam) {
+        return res.status(404).json({
+          success: false,
+          message: "Team not found",
+        });
+      }
+      if (existingTeam.checkedIn) {
+        return res.status(400).json({
+          success: false,
+          message: "Already checked in",
+        });
+      }
+    }
 
     await logActivity({
       req,
@@ -1388,6 +1440,7 @@ export {
   forceAddMember,
   forceRemoveMember,
   markCheckedIn,
+  verifyQR,
   exportUsers,
   exportTeams,
 };
