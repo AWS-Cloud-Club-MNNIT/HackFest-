@@ -78,7 +78,7 @@ const DashboardNavbar = ({ user: propUser }) => {
     }
     
     // Redirect based on notification type
-    const myTeamEvents = ['join_request', 'member_joined', 'member_left', 'domain_changed', 'invite_accepted'];
+    const myTeamEvents = ['request_received', 'member_joined', 'member_left', 'domain_changed', 'invite_accepted'];
     
     if (myTeamEvents.includes(notif.type)) {
       navigate('/team/my-team');
