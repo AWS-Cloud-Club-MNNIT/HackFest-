@@ -163,7 +163,7 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold font-display tracking-wider text-[#e8d7b5]">Available Houses</h3>
             <span className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-widest px-3 py-1 bg-[#d4af37]/10 rounded-full border border-[#d4af37]/30">Create or join a team to choose your house</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {HOUSES_DATA.map((house, idx) => {
               const isHovered = hoveredHouse === house.id;
               const isAnyHovered = hoveredHouse !== null;
@@ -175,7 +175,7 @@ const Dashboard = () => {
                   transition={{ delay: idx * 0.1 }}
                   onMouseEnter={() => setHoveredHouse(house.id)}
                   onMouseLeave={() => setHoveredHouse(null)}
-                  className={`group relative overflow-hidden rounded-xl border ${house.borderColor} ${house.hoverBorder} bg-gradient-to-b ${house.bgGradient} p-5 backdrop-blur-xl transition-all duration-300`}
+                  className={`group relative overflow-hidden rounded-xl border ${house.borderColor} ${house.hoverBorder} bg-gradient-to-b ${house.bgGradient} p-3 sm:p-5 backdrop-blur-xl transition-all duration-300`}
                   style={{
                     boxShadow: isHovered
                       ? `0 10px 30px ${house.glowColor}, inset 0 0 15px ${house.glowColor}`
@@ -186,12 +186,12 @@ const Dashboard = () => {
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
                   
-                  <div className="relative z-10 flex flex-col h-full items-center text-center">
-                    <div className="h-14 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]">
+                  <div className="relative z-10 flex flex-col h-full items-center text-center justify-center">
+                    <div className="h-10 sm:h-14 flex items-center justify-center mb-2 sm:mb-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]">
                        <img
                           src={house.logoImg}
                           alt={`${house.name} Logo`}
-                          className="h-12 w-auto object-contain"
+                          className="h-10 sm:h-12 w-auto object-contain"
                           onError={(e) => {
                             if (!e.currentTarget.dataset.triedAlt) {
                               e.currentTarget.dataset.triedAlt = 'true'
@@ -202,13 +202,10 @@ const Dashboard = () => {
                           }}
                         />
                     </div>
-                    <h4 className="font-harry text-3xl font-bold tracking-wider text-[#f4e8c1] mb-2">{house.name}</h4>
-                    <span className={`text-[9px] font-bold tracking-widest uppercase border ${house.badgeBg} px-2.5 py-0.5 rounded-full mb-3 shadow-sm`}>
-                      {house.domainCode}
+                    <h4 className="font-harry text-2xl sm:text-3xl font-bold tracking-wider text-[#f4e8c1] mb-2">{house.name}</h4>
+                    <span className={`text-[10px] sm:text-xs font-bold tracking-widest uppercase border ${house.badgeBg} px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm`}>
+                      {activeEvent?.domains?.[idx] || house.domainCode}
                     </span>
-                    <p className={`text-xs font-medium font-display ${house.textColor} tracking-wide group-hover:text-white transition-colors`}>
-                      {house.domainTitle}
-                    </p>
                   </div>
                 </motion.div>
               );
