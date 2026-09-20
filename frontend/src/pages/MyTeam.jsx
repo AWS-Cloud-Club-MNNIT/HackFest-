@@ -37,6 +37,14 @@ export default function MyTeam() {
   const [changingDomain, setChangingDomain] = useState(false);
   
   const [selectedUser, setSelectedUser] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Close member action menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const fetchTeamData = async (userData) => {
     try {
@@ -607,14 +615,24 @@ export default function MyTeam() {
 
                        {/* Management Controls */}
                        {canEdit && member._id !== user._id && (
-                         <div className="relative group/menu ml-auto sm:ml-2">
-                           <button className="p-2 text-gray-400 hover:text-white transition-colors">
+                         <div className="relative ml-auto sm:ml-2">
+                           <button 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setOpenMenuId(openMenuId === member._id ? null : member._id);
+                             }}
+                             className="p-2 text-gray-400 hover:text-white transition-colors"
+                           >
                              <MoreVertical className="w-5 h-5" />
                            </button>
                            {/* Context Menu Dropdown */}
-                           <div className="absolute right-0 top-full mt-2 w-48 bg-[#05070f] border border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-20 overflow-hidden translate-y-2 group-hover/menu:translate-y-0">
+                           <div className={`absolute right-0 top-full mt-2 w-48 bg-[#05070f] border border-white/10 rounded-xl shadow-xl transition-all z-20 overflow-hidden ${openMenuId === member._id ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); handleRemoveMember(member._id); }}
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setOpenMenuId(null);
+                                  handleRemoveMember(member._id); 
+                                }}
                                 className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors"
                               >
                                 <UserMinus className="w-4 h-4" /> Remove Member
