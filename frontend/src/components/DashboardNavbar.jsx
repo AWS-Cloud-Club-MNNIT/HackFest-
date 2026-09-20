@@ -72,6 +72,23 @@ const DashboardNavbar = ({ user: propUser }) => {
     await markAsRead(id);
   };
 
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read) {
+      await markAsRead(notif._id);
+    }
+    
+    // Redirect based on notification type
+    const myTeamEvents = ['join_request', 'member_joined', 'member_left', 'domain_changed', 'invite_accepted'];
+    
+    if (myTeamEvents.includes(notif.type)) {
+      navigate('/team/my-team');
+    } else if (notif.type === 'invite_received') {
+      navigate('/dashboard'); 
+    }
+    
+    setShowNotifications(false);
+  };
+
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
   };
@@ -183,7 +200,7 @@ const DashboardNavbar = ({ user: propUser }) => {
                     notifications.map((notif) => (
                       <div
                         key={notif._id}
-                        onClick={() => !notif.read && handleMarkAsRead(notif._id)}
+                        onClick={() => handleNotificationClick(notif)}
                         className={`p-3 rounded-xl mb-2 flex gap-3 cursor-pointer transition-all duration-300 ${
                           notif.read
                             ? "opacity-60 hover:bg-white/5"
