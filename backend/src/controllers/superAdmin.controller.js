@@ -635,6 +635,7 @@ const toggleBlockUser = async (req, res) => {
 // ===============================
 // PROMOTE / DEMOTE USER ROLE
 // ===============================
+
 const updateUserRole = async (req, res) => {
   try {
     const targetUser = await User.findById(req.params.id);
@@ -646,12 +647,43 @@ const updateUserRole = async (req, res) => {
       });
     }
 
+    // Prevent an admin from changing their own role
+    if (
+      req.user &&
+      req.user._id &&
+      req.user._id.toString() === targetUser._id.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot change your own role",
+      });
+    }
+
     const previousRole = targetUser.role;
 
-    targetUser.role =
+    const newRole =
       targetUser.role === "super_admin"
         ? "participant"
         : "super_admin";
+
+    // Prevent removing the last Super Admin
+    if (
+      previousRole === "super_admin" &&
+      newRole === "participant"
+    ) {
+      const superAdminCount = await User.countDocuments({
+        role: "super_admin",
+      });
+
+      if (superAdminCount <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot remove the last Super Admin",
+        });
+      }
+    }
+
+    targetUser.role = newRole;
 
     await targetUser.save();
 
@@ -667,7 +699,7 @@ const updateUserRole = async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: `User role updated to ${targetUser.role}`,
       user: {
@@ -678,7 +710,7 @@ const updateUserRole = async (req, res) => {
   } catch (error) {
     console.error("Update user role error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to update user role",
       error: error.message,

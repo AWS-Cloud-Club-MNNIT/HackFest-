@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import { useAuthStore } from "../store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, 
@@ -35,6 +36,7 @@ const InputWrapper = ({ icon: Icon, label, children }) => (
 
 const Signup = () => {
   const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -109,11 +111,9 @@ const Signup = () => {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      if (userData?.role === "super_admin") {
-        navigate("/super_admin");
-      } else {
-        navigate("/dashboard");
-      }
+      setUser(userData);
+
+      navigate("/dashboard");
     } catch (error) {
       setError(error.response?.data?.message || "Signup failed. Please try again.");
     } finally {

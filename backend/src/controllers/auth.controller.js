@@ -41,13 +41,14 @@ export const signup = async (req, res) => {
       });
     }
 
-    const adminEmails = (process.env.SUPER_ADMIN_EMAILS || "")
-      .split(",")
-      .map((email) => email.trim().toLowerCase());
+    // const adminEmails = (process.env.SUPER_ADMIN_EMAILS || "")
+    //   .split(",")
+    //   .map((email) => email.trim().toLowerCase());
 
-    const role = adminEmails.includes(normalizedEmail)
-      ? "super_admin"
-      : "participant";
+    // const role = adminEmails.includes(normalizedEmail)
+    //   ? "super_admin"
+    //   : "participant";
+    const role = "participant";
 
     const passwordHash = await bcrypt.hash(password, 10);
 
