@@ -49,48 +49,13 @@ import OrganizerScan from './pages/OrganizerScan'
 // =====================================================
 
 function PageSection({ children, index }) {
-  const ref = useRef(null)
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start start', 'end start'],
-  })
-
-  const y = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [0, 120]
-  )
-
-  const scale = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [1, 0.95]
-  )
-
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [1, 0.6]
-  )
-
   return (
-    <motion.div
-      ref={ref}
-      className="relative w-full"
+    <div
+      className="relative w-full bg-[#080b16]"
       style={{ zIndex: index }}
     >
-      <motion.div
-        style={{
-          y,
-          scale,
-          opacity,
-        }}
-        className="w-full origin-top bg-[#080b16] shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
-      >
-        {children}
-      </motion.div>
-    </motion.div>
+      {children}
+    </div>
   )
 }
 
