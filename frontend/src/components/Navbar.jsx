@@ -110,15 +110,20 @@ export default function Navbar() {
     if (e) e.preventDefault()
     setMobileMenuOpen(false)
     const targetId = href.replace('#', '')
-    if (targetId === 'hero') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-    const element = document.getElementById(targetId)
-    if (element) {
-      const topPos = element.getBoundingClientRect().top + window.scrollY - 55
-      window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
-    }
+    
+    // Use a small timeout to allow the mobile menu close animation to start
+    // before calculating layout and scrolling, which prevents mobile browsers from dropping the scroll.
+    setTimeout(() => {
+      if (targetId === 'hero') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
+      const element = document.getElementById(targetId)
+      if (element) {
+        const topPos = element.getBoundingClientRect().top + window.scrollY - 55
+        window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
+      }
+    }, 50)
   }
 
   return (
