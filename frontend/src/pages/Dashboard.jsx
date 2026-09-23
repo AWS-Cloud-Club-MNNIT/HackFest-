@@ -289,10 +289,10 @@ const Dashboard = () => {
                         {invites.map((invite) => (
                           <div key={invite._id} className="bg-[#101522] border border-[#d4af37]/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                              <h5 className="font-bold text-white text-lg">{invite.teamId.name}</h5>
+                              <h5 className="font-bold text-white text-lg">{invite.teamId?.name || "Unknown Team"}</h5>
                               <p className="text-xs text-gray-400 mt-1">
-                                Domain: <span className="text-[#d4af37]">{invite.teamId.domain || "N/A"}</span> •
-                                Invited by: <span className="text-[#d4af37]">{invite.fromUserId.name}</span>
+                                Domain: <span className="text-[#d4af37]">{invite.teamId?.domain || "N/A"}</span> •
+                                Invited by: <span className="text-[#d4af37]">{invite.fromUserId?.name || "Unknown"}</span>
                               </p>
                             </div>
                             <button
