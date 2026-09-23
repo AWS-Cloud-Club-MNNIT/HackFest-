@@ -20,19 +20,19 @@ export default function SplitText({ text, className = '', as = 'h2' }) {
         show: { transition: { staggerChildren: 0.045 } },
       }}
     >
-      {words.map((word, i) => (
+      {words.map((word, i) => [
         <motion.span
           key={`${word}-${i}`}
-          className="inline-block whitespace-pre-wrap"
+          className="inline-block"
           variants={{
             hidden: { opacity: 0.15, y: 10 },
             show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
           }}
         >
           {word}
-          {i < words.length - 1 ? ' ' : ''}
-        </motion.span>
-      ))}
+        </motion.span>,
+        i < words.length - 1 ? ' ' : ''
+      ])}
     </Tag>
   )
 }
