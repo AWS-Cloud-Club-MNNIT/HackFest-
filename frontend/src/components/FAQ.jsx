@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: 'Is participation free?',
-    a: 'The brochure does not specify an entry fee, so please refer to the official registration information for participation details.',
+    a: 'Yes, participation is completely free! There is no entry fee to join the hackathon.',
   },
   {
     q: 'What team size is permitted?',
@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: 'Where does the Grand Finale take place?',
-    a: 'The Grand Finale takes place offline on 1 November 2026. The brochure identifies MNNIT Allahabad as the venue, with the final event presented as an immersive Hogwarts-themed experience.',
+    a: 'The Grand Finale takes place offline on 1 November 2026 at MNNIT Allahabad, presented as an immersive Hogwarts-themed experience.',
   },
 ]
 
