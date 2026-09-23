@@ -19,7 +19,7 @@ const Dashboard = () => {
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [invites, setInvites] = useState([]);
   const [processingInvite, setProcessingInvite] = useState(null);
-  
+
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [hoveredHouse, setHoveredHouse] = useState(null);
 
@@ -29,11 +29,6 @@ const Dashboard = () => {
         let fetchedUser = user;
         if (!fetchedUser) {
           fetchedUser = await fetchUser();
-        }
-
-        if (fetchedUser?.role === "super_admin") {
-          navigate("/super_admin");
-          return;
         }
 
         const eventRes = await API.get("/events/active");
@@ -56,16 +51,14 @@ const Dashboard = () => {
   const handleToggleAvailability = async (e) => {
     const isChecked = e.target.checked;
     const previousState = user.lookingForTeam;
-    
-    // Optimistic Update
+
     updateUserField('lookingForTeam', isChecked);
     setUpdatingAvailability(true);
-    
+
     try {
       const res = await API.patch("/users/availability", { lookingForTeam: isChecked });
       toast.success(res.data.message);
     } catch (error) {
-      // Revert on failure
       updateUserField('lookingForTeam', previousState);
       toast.error(error.response?.data?.message || "Failed to update availability");
     } finally {
@@ -78,11 +71,9 @@ const Dashboard = () => {
     try {
       await API.patch(`/invites/${inviteId}/accept`);
       toast.success("Successfully joined the team!");
-      
-      // Update local state immediately
+
       setInvites(prev => prev.filter(inv => inv._id !== inviteId));
-      
-      // Refresh user and notifications to sync global state
+
       await fetchUser();
       fetchNotifications();
     } catch (error) {
@@ -95,17 +86,15 @@ const Dashboard = () => {
 
   const handleRejectInvite = async (inviteId) => {
     setProcessingInvite(inviteId);
-    
-    // Optimistic remove
+
     const inviteToReject = invites.find(i => i._id === inviteId);
     setInvites(prev => prev.filter(inv => inv._id !== inviteId));
-    
+
     try {
       await API.patch(`/invites/${inviteId}/reject`);
       toast.success("Invite rejected");
       fetchNotifications();
     } catch (error) {
-      // Revert if failed
       if (inviteToReject) {
         setInvites(prev => [...prev, inviteToReject]);
       }
@@ -132,8 +121,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#080b16] text-white relative overflow-hidden">
-      
-      {/* Cinematic Background & Sparks */}
+
       <div className="cinematic-bg-overlay z-0" />
       <div className="absolute inset-0 bg-hogwarts-grid opacity-[0.15] pointer-events-none z-0" />
       <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-[#d4af37] rounded-full blur-[1px] animate-star z-0" />
@@ -144,7 +132,7 @@ const Dashboard = () => {
         <DashboardNavbar user={user} />
 
         <main className="max-w-6xl mx-auto px-6 py-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-12 text-center"
@@ -157,7 +145,6 @@ const Dashboard = () => {
           </h2>
         </motion.div>
 
-        {/* The Four Houses / Domains */}
         <div className="mb-12">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
             <h3 className="text-xl font-bold font-display tracking-wider text-[#e8d7b5]">Available Houses</h3>
@@ -185,7 +172,7 @@ const Dashboard = () => {
                   }}
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
-                  
+
                   <div className="relative z-10 flex flex-col h-full items-center text-center justify-center">
                     <div className="h-10 sm:h-14 flex items-center justify-center mb-2 sm:mb-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]">
                        <img
@@ -214,15 +201,14 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Left Column: Registration Status */}
+
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-[#101522]/80 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#d4af37]" />
                 Registration Status
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-sm">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -256,7 +242,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Availability Toggle (Only if not in a team) */}
             {!user.teamId && (
               <div className="bg-[#101522]/80 border border-[#d4af37]/30 rounded-2xl p-6 backdrop-blur-xl transition-all hover:border-[#d4af37]/60">
                 <div className="flex justify-between items-start mb-2">
@@ -273,7 +258,7 @@ const Dashboard = () => {
                   </label>
                 </div>
                 <p className="text-sm text-gray-400">
-                  {user.lookingForTeam 
+                  {user.lookingForTeam
                     ? "You are currently visible to team leaders."
                     : "Turn this on if you want to be discovered."}
                 </p>
@@ -281,10 +266,9 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Right Column: Actions / Team Details */}
           <div className="lg:col-span-2 space-y-6">
             {!user.teamId ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
@@ -295,8 +279,7 @@ const Dashboard = () => {
                     <Users className="w-6 h-6 text-[#d4af37]" />
                     <h3 className="text-2xl font-semibold text-white">Team Formation</h3>
                   </div>
-                  
-                  {/* Incoming Invites Section */}
+
                   {invites.length > 0 && (
                     <div className="mb-8 p-5 bg-[#d4af37]/5 border border-[#d4af37]/30 rounded-2xl">
                       <h4 className="text-[#d4af37] font-bold mb-4 uppercase tracking-wider text-sm flex items-center gap-2">
@@ -308,7 +291,7 @@ const Dashboard = () => {
                             <div>
                               <h5 className="font-bold text-white text-lg">{invite.teamId.name}</h5>
                               <p className="text-xs text-gray-400 mt-1">
-                                Domain: <span className="text-[#d4af37]">{invite.teamId.domain || "N/A"}</span> • 
+                                Domain: <span className="text-[#d4af37]">{invite.teamId.domain || "N/A"}</span> •
                                 Invited by: <span className="text-[#d4af37]">{invite.fromUserId.name}</span>
                               </p>
                             </div>
@@ -325,8 +308,7 @@ const Dashboard = () => {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Create Team Card */}
-                    <div 
+                    <div
                       onClick={() => navigate("/team/create")}
                       className="group cursor-pointer bg-[#101522]/80 border border-[#d4af37]/20 rounded-2xl p-6 hover:border-[#d4af37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-all duration-300 flex flex-col"
                     >
@@ -342,8 +324,7 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    {/* Find Team Card */}
-                    <div 
+                    <div
                       onClick={() => navigate("/team/find")}
                       className="group cursor-pointer bg-[#101522]/80 border border-blue-500/20 rounded-2xl p-6 hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all duration-300 flex flex-col"
                     >
@@ -362,7 +343,7 @@ const Dashboard = () => {
                 </div>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="h-full"
@@ -371,19 +352,19 @@ const Dashboard = () => {
                   <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                     <Users className="w-48 h-48 text-[#d4af37]" />
                   </div>
-                  
+
                   <span className="inline-block px-3 py-1 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded-full text-[10px] font-bold tracking-widest uppercase mb-6 self-start">
                     Team Status Active
                   </span>
-                  
+
                   <h3 className="text-3xl sm:text-4xl font-display font-bold text-white mb-3 relative z-10">
                     You're part of a team
                   </h3>
-                  
+
                   <p className="text-gray-400 text-sm sm:text-base mb-8 max-w-md relative z-10">
                     Your team dashboard is ready. Collaborate with your members, manage invitations, and prepare for the hackathon journey.
                   </p>
-                  
+
                   <button
                     onClick={() => navigate("/team/my-team")}
                     className="self-start px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#e6c65c] to-[#d4af37] text-black font-bold text-sm sm:text-base hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all flex items-center gap-2"
@@ -399,14 +380,13 @@ const Dashboard = () => {
 
       </main>
 
-      {/* Invite Detail Modal */}
       <DetailModal
         isOpen={!!selectedTeam}
         onClose={() => setSelectedTeam(null)}
         title="Team Invitation Details"
       >
         {selectedTeam && (
-          <TeamDetail 
+          <TeamDetail
             team={selectedTeam.teamId}
             actions={
               <>

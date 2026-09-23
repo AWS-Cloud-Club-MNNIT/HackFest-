@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
+
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+
 
 import API from "../../services/api";
 import UsersTab from "./tabs/UsersTab";
@@ -11,7 +14,7 @@ import OverviewTab from "./tabs/OverviewTab";
 import ActivityLogsTab from "./tabs/ActivityLogsTab";
 import SettingsTab from "./tabs/SettingsTab";
 
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, ExternalLink } from "lucide-react";
 import { useNotificationStore } from "../../store/useNotificationStore";
 import { useAuthStore } from "../../store/useAuthStore";
 
@@ -131,6 +134,7 @@ function StatusBadge({ status }) {
 // =============================================================
 
 function SuperAdminDashboard() {
+  const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -944,6 +948,29 @@ function SuperAdminDashboard() {
 
           {/* Bottom navigation */}
           <div className="space-y-2">
+
+
+ {/* View Site */}
+<button
+  onClick={() => {
+    //window.location.href = "/";
+    navigate("/dashboard");
+  }}
+  className="
+    flex w-full items-center gap-3
+    rounded-xl px-4 py-3
+    text-sm text-[#7e899e]
+    transition
+    hover:bg-[#d4af37]/5
+    hover:text-[#d8bd68]
+  "
+>
+  <span className="flex h-8 w-8 items-center justify-center">
+    <ExternalLink size={17} />
+  </span>
+
+  View Site
+</button>
             {/* Settings */}
             <button
               onClick={() => {

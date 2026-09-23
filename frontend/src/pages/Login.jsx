@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import { useAuthStore } from "../store/useAuthStore";
 
 const Login = () => {
   const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -35,11 +37,9 @@ const Login = () => {
         JSON.stringify(userData)
       );
 
-      if (userData?.role === "super_admin") {
-        navigate("/super-admin");
-      } else {
-        navigate("/dashboard");
-      }
+      setUser(userData);
+
+      navigate("/dashboard");
     } catch (error) {
       setError(
         error.response?.data?.message || "Invalid email or password"

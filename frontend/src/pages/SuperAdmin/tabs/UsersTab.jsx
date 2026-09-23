@@ -89,6 +89,53 @@ const UsersTab = () => {
     }
   };
 
+  // Promote or demote a user
+  const handleToggleRole = async (user) => {
+    const isCurrentlyAdmin = user.role === "super_admin";
+
+    const action = isCurrentlyAdmin
+      ? "remove Super Admin access from"
+      : "make Super Admin";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${action} ${
+        user.name || user.email
+      }?`
+    );
+
+    if (!confirmed) return;
+
+    setBusyId(user._id);
+
+    try {
+      const res = await API.patch(
+        `/super-admin/users/${user._id}/role`
+      );
+
+      const updated = res.data.user;
+
+      setUsers((previousUsers) =>
+        previousUsers.map((item) =>
+          item._id === user._id
+            ? {
+                ...item,
+                role: updated.role,
+              }
+            : item
+        )
+      );
+
+      toast.success(res.data.message);
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          "Failed to update user role"
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const getDomain = (user) => {
     if (user.domain) return user.domain;
 
@@ -105,6 +152,7 @@ const UsersTab = () => {
         <h3 className="text-3xl font-bold font-harry text-[#f4e8c1] drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
           Users ({users.length})
         </h3>
+
         <input
           placeholder="Search name, email, college…"
           value={search}
@@ -123,168 +171,180 @@ const UsersTab = () => {
             No participants match your search.
           </p>
         ) : (
-            <table className="w-full text-sm text-left border-collapse">
+          <table className="w-full text-sm text-left border-collapse">
             <thead>
               <tr className="bg-[#d4af37]/10 text-[#d4af37] font-serif tracking-widest text-xs uppercase border-b border-[#d4af37]/30">
-                <th className="py-4 px-6 font-semibold">Name</th>
-                <th className="py-4 px-6 font-semibold">Email</th>
-                <th className="py-4 px-6 font-semibold">College</th>
-                <th className="py-4 px-6 font-semibold">Role</th>
-                <th className="py-4 px-6 font-semibold">Status</th>
-                <th className="py-4 px-6 font-semibold text-right">Actions</th>
+                <th className="py-4 px-6 font-semibold">
+                  Name
+                </th>
+                <th className="py-4 px-6 font-semibold">
+                  Email
+                </th>
+                <th className="py-4 px-6 font-semibold">
+                  College
+                </th>
+                <th className="py-4 px-6 font-semibold">
+                  Role
+                </th>
+                <th className="py-4 px-6 font-semibold">
+                  Status
+                </th>
+                <th className="py-4 px-6 font-semibold text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {filtered.map((user) => (
-                <>
-                  <tr
-                    key={user._id}
-                    className="border-b border-[#d4af37]/10 hover:bg-[#d4af37]/5"
-                  >
-                    <td className="py-3 px-4 text-white whitespace-nowrap">
-                      {user.name || "—"}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-400">
-                      {user.email || "—"}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-400">
-                      {user.college || "—"}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-400">
-                      {getDomain(user)}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          user.isBlocked
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-emerald-500/10 text-emerald-400"
-                        }`}
-                      >
-                        {user.isBlocked ? "Blocked" : "Active"}
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() =>
-                            setExpandedId(
-                              expandedId === user._id
-                                ? null
-                                : user._id
-                            )
-                          }
-                          className="text-xs text-[#d4af37] hover:underline"
-                        >
-                          {expandedId === user._id
-                            ? "Hide Details"
-                            : "View Details"}
-                        </button>
-
-                        {user.role === "super_admin" ? (
-                          <span className="text-xs text-gray-600">
-                            —
-                          </span>
-                        ) : (
-                          <button
-                            disabled={busyId === user._id}
-                            onClick={() => handleToggleBlock(user)}
-                            className={`text-xs hover:underline disabled:opacity-50 ${
-                              user.isBlocked
-                                ? "text-emerald-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {busyId === user._id
-                              ? "..."
-                              : user.isBlocked
-                              ? "Unblock"
-                              : "Block"}
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-
-                  {expandedId === user._id && (
-                    <tr
-                      key={`${user._id}-details`}
-                      className="bg-[#080b16]/70 border-b border-[#d4af37]/20"
-                    >
-                      <td colSpan={6} className="p-5">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <Detail
-                            label="Full Name"
-                            value={user.name}
-                          />
-
-                          <Detail
-                            label="Email"
-                            value={user.email}
-                          />
-
-                          <Detail
-                            label="College"
-                            value={user.college}
-                          />
-
-                          <Detail
-                            label="Branch"
-                            value={user.branch}
-                          />
-
-                          <Detail
-                            label="Year"
-                            value={user.year}
-                          />
-
-                          <Detail
-                            label="Role"
-                            value={user.role}
-                          />
-
-                          <Detail
-                            label="Domain"
-                            value={getDomain(user)}
-                          />
-
-                          <Detail
-                            label="Skills"
-                            value={
-                              Array.isArray(user.skills)
-                                ? user.skills.join(", ")
-                                : user.skills
-                            }
-                          />
-
-                          <Detail
-                            label="User ID"
-                            value={user._id}
-                          />
-
-                          <Detail
-                            label="Account Status"
-                            value={
-                              user.isBlocked ? "Blocked" : "Active"
-                            }
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
+                <UserRows
+                  key={user._id}
+                  user={user}
+                  expandedId={expandedId}
+                  setExpandedId={setExpandedId}
+                  busyId={busyId}
+                  handleToggleRole={handleToggleRole}
+                  handleToggleBlock={handleToggleBlock}
+                  getDomain={getDomain}
+                />
               ))}
             </tbody>
           </table>
         )}
       </div>
     </div>
+  );
+};
+
+const UserRows = ({
+  user,
+  expandedId,
+  setExpandedId,
+  busyId,
+  handleToggleRole,
+  handleToggleBlock,
+  getDomain,
+}) => {
+  return (
+    <>
+      <tr className="border-b border-[#d4af37]/10 hover:bg-[#d4af37]/5">
+        <td className="py-3 px-4 text-white whitespace-nowrap">
+          {user.name || "—"}
+        </td>
+
+        <td className="py-3 px-4 text-gray-400">
+          {user.email || "—"}
+        </td>
+
+        <td className="py-3 px-4 text-gray-400">
+          {user.college || "—"}
+        </td>
+
+        <td className="py-3 px-4 text-gray-400">
+          {user.role || "—"}
+        </td>
+
+        <td className="py-3 px-4">
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              user.isBlocked
+                ? "bg-red-500/10 text-red-400"
+                : "bg-emerald-500/10 text-emerald-400"
+            }`}
+          >
+            {user.isBlocked ? "Blocked" : "Active"}
+          </span>
+        </td>
+
+        <td className="py-3 px-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() =>
+                setExpandedId(
+                  expandedId === user._id
+                    ? null
+                    : user._id
+                )
+              }
+              className="text-xs text-[#d4af37] hover:underline"
+            >
+              {expandedId === user._id
+                ? "Hide Details"
+                : "View Details"}
+            </button>
+
+            <button
+              disabled={busyId === user._id}
+              onClick={() => handleToggleRole(user)}
+              className={`text-xs hover:underline disabled:opacity-50 ${
+                user.role === "super_admin"
+                  ? "text-orange-400"
+                  : "text-emerald-400"
+              }`}
+            >
+              {busyId === user._id
+                ? "..."
+                : user.role === "super_admin"
+                ? "Remove Admin"
+                : "Make Admin"}
+            </button>
+
+            {user.role === "super_admin" ? (
+              <span className="text-xs text-gray-600">
+                Admin
+              </span>
+            ) : (
+              <button
+                disabled={busyId === user._id}
+                onClick={() => handleToggleBlock(user)}
+                className={`text-xs hover:underline disabled:opacity-50 ${
+                  user.isBlocked
+                    ? "text-emerald-400"
+                    : "text-red-400"
+                }`}
+              >
+                {busyId === user._id
+                  ? "..."
+                  : user.isBlocked
+                  ? "Unblock"
+                  : "Block"}
+              </button>
+            )}
+          </div>
+        </td>
+      </tr>
+
+      {expandedId === user._id && (
+        <tr className="bg-[#080b16]/70 border-b border-[#d4af37]/20">
+          <td colSpan={6} className="p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Detail label="Full Name" value={user.name} />
+              <Detail label="Email" value={user.email} />
+              <Detail label="College" value={user.college} />
+              <Detail label="Branch" value={user.branch} />
+              <Detail label="Year" value={user.year} />
+              <Detail label="Role" value={user.role} />
+              <Detail label="Domain" value={getDomain(user)} />
+              <Detail
+                label="Skills"
+                value={
+                  Array.isArray(user.skills)
+                    ? user.skills.join(", ")
+                    : user.skills
+                }
+              />
+              <Detail label="User ID" value={user._id} />
+              <Detail
+                label="Account Status"
+                value={
+                  user.isBlocked ? "Blocked" : "Active"
+                }
+              />
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 };
 
