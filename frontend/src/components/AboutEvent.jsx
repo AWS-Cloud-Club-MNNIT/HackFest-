@@ -143,7 +143,7 @@ export default function AboutEvent() {
 
           <SplitText
             text="HOGWARTS LEGACY: THE MAGIC BEGINS."
-            className="mt-3 text-balance font-harry text-4xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-6xl"
+            className="mt-3 text-balance font-harry text-3xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-5xl lg:text-6xl"
           />
         </div>
 
