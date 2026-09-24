@@ -74,7 +74,7 @@ export default function Hero() {
           <img
             src="/images/aws_mnnit_logo.png"
             alt="AWS Student Builder Group • MNNIT Allahabad"
-            className="h-16 sm:h-24 md:h-28 w-auto max-w-[320px] sm:max-w-[460px] object-contain drop-shadow-[0_6px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
+            className="h-24 sm:h-32 md:h-36 w-auto max-w-[320px] sm:max-w-[460px] object-contain drop-shadow-[0_6px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
               if (e.currentTarget.nextElementSibling) {

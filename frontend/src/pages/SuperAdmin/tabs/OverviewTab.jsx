@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import API from "../../../services/api";
 
-const OverviewTab = ({ setActiveMenu }) => {
+const OverviewTab = ({ onNavigateTab }) => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -288,7 +288,7 @@ const OverviewTab = ({ setActiveMenu }) => {
         <div className="flex flex-wrap gap-3">
           {/* Manage Events */}
           <button
-            onClick={() => setActiveMenu?.("events")}
+            onClick={() => onNavigateTab?.("events")}
             className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -304,7 +304,7 @@ const OverviewTab = ({ setActiveMenu }) => {
 
           {/* Manage Teams */}
           <button
-            onClick={() => setActiveMenu?.("teams")}
+            onClick={() => onNavigateTab?.("teams")}
             className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -320,7 +320,7 @@ const OverviewTab = ({ setActiveMenu }) => {
 
           {/* Send Announcement */}
           <button
-            onClick={() => setActiveMenu?.("broadcast")}
+            onClick={() => onNavigateTab?.("broadcast")}
             className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#080b16]/60 p-5 text-left transition-all hover:-translate-y-1 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />

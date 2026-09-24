@@ -35,8 +35,8 @@ export default function ApplyNow() {
         >
 
           {/* Wax Seal */}
-          <div className="absolute top-6 right-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#740001] via-[#8b0000] to-[#3a0000] text-[#f4e8c1] shadow-[0_4px_15px_rgba(0,0,0,0.6)] border-2 border-[#d3a625]">
-            <span className="font-harry text-3xl font-bold">H</span>
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex h-10 w-10 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#740001] via-[#8b0000] to-[#3a0000] text-[#f4e8c1] shadow-[0_4px_15px_rgba(0,0,0,0.6)] border-2 border-[#d3a625]">
+            <span className="font-harry text-2xl sm:text-3xl font-bold">H</span>
           </div>
 
           <div className="max-w-2xl text-left">
@@ -73,10 +73,12 @@ export default function ApplyNow() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="inline-block">
                 <Link
                   to="/signup"
-                  className="inline-flex items-center gap-3 rounded-md border-2 border-[#b89228] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-9 py-4 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition hover:border-[#f4e8c1] hover:shadow-[0_10px_40px_rgba(212,175,55,0.6)]"
+                  className="group inline-flex items-center gap-3 rounded-md border-2 border-[#b89228] bg-gradient-to-r from-[#24170f] via-[#5c3b80] to-[#24170f] px-9 py-4 text-sm font-bold uppercase tracking-widest text-[#f4e8c1] shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition hover:border-[#f4e8c1] hover:shadow-[0_10px_40px_rgba(212,175,55,0.6)]"
                 >
                   <span>Apply Now</span>
-                  <span className="text-lg">✉️</span>
+                  <svg className="h-5 w-5 text-[#d4af37] transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                 </Link>
               </motion.div>
             </Reveal>
@@ -95,7 +97,9 @@ export default function ApplyNow() {
               <motion.div
                 key={d.label}
                 variants={staggerItem}
-                className="rounded-lg border border-[#b89228]/50 bg-[#f4e8c1]/70 px-3 py-3 text-center shadow-sm"
+                className={`rounded-lg border border-[#b89228]/50 bg-[#f4e8c1]/70 px-3 py-3 text-center shadow-sm flex flex-col justify-center ${
+                  d.label === 'Eligibility' ? 'col-span-2 sm:col-span-1' : ''
+                }`}
               >
                 <p className="font-display text-sm font-bold text-[#24170f]">
                   {d.value}

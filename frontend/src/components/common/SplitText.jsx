@@ -20,7 +20,7 @@ export default function SplitText({ text, className = '', as = 'h2' }) {
         show: { transition: { staggerChildren: 0.045 } },
       }}
     >
-      {words.map((word, i) => (
+      {words.map((word, i) => [
         <motion.span
           key={`${word}-${i}`}
           className="inline-block"
@@ -30,9 +30,9 @@ export default function SplitText({ text, className = '', as = 'h2' }) {
           }}
         >
           {word}
-          {i < words.length - 1 ? '\u00A0' : ''}
-        </motion.span>
-      ))}
+        </motion.span>,
+        i < words.length - 1 ? ' ' : ''
+      ])}
     </Tag>
   )
 }

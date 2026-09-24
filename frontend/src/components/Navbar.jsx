@@ -110,15 +110,20 @@ export default function Navbar() {
     if (e) e.preventDefault()
     setMobileMenuOpen(false)
     const targetId = href.replace('#', '')
-    if (targetId === 'hero') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-    const element = document.getElementById(targetId)
-    if (element) {
-      const topPos = element.getBoundingClientRect().top + window.scrollY - 55
-      window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
-    }
+    
+    // Use a small timeout to allow the mobile menu close animation to start
+    // before calculating layout and scrolling, which prevents mobile browsers from dropping the scroll.
+    setTimeout(() => {
+      if (targetId === 'hero') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
+      const element = document.getElementById(targetId)
+      if (element) {
+        const topPos = element.getBoundingClientRect().top + window.scrollY - 55
+        window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' })
+      }
+    }, 50)
   }
 
   return (
@@ -166,9 +171,8 @@ export default function Navbar() {
           </div>
         </a>
 
-        {/* Ultra-Clean Floating Pill Navigation Bar */}
         <nav className="hidden items-center gap-3.5 xl:gap-5 lg:flex border border-[#d4af37]/25 rounded-full bg-[#080b16]/85 px-5 py-1.5 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.slice(0, 5).map((link) => {
             const sectionId = link.href.replace('#', '')
             const isActive = activeSection === sectionId
             return (
@@ -193,6 +197,36 @@ export default function Navbar() {
               </a>
             )
           })}
+
+          <div className="relative group">
+            <button className="flex items-center gap-1 cursor-pointer text-[11px] xl:text-[12px] font-semibold tracking-wide text-[#e8d7b5]/75 hover:text-[#f4e8c1] transition-all duration-300 select-none py-1">
+              More
+              <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            
+            <div className="absolute top-full right-0 pt-3 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300">
+              <div className="flex flex-col min-w-[120px] bg-[#080b16]/95 border border-[#d4af37]/30 rounded-xl p-2 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+                {NAV_LINKS.slice(5).map((link) => {
+                  const sectionId = link.href.replace('#', '')
+                  const isActive = activeSection === sectionId
+                  return (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      onClick={(e) => handleNavClick(e, link.href)}
+                      className={`block cursor-pointer text-[11px] xl:text-[12px] font-semibold tracking-wide transition-all duration-200 select-none px-3 py-2 rounded-lg ${
+                        isActive
+                          ? 'text-[#d4af37] bg-[#d4af37]/10 font-bold'
+                          : 'text-[#e8d7b5]/75 hover:text-[#d4af37] hover:bg-[#d4af37]/5'
+                      }`}
+                    >
+                      {link.name}
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* Professional Desktop CTA Buttons */}

@@ -68,7 +68,8 @@ export const getReceivedInvites = async (req, res) => {
         ]
       })
       .populate('fromUserId', '-passwordHash -email -phone');
-    res.status(200).json(invites);
+    const validInvites = invites.filter(inv => inv.teamId != null && inv.fromUserId != null);
+    res.status(200).json(validInvites);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

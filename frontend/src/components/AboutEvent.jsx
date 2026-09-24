@@ -85,7 +85,7 @@ function TiltCard() {
         rotateX,
         transformStyle: 'preserve-3d',
       }}
-      className="group relative aspect-[3/4] w-full max-w-lg min-h-[500px] sm:min-h-[560px] overflow-hidden rounded-2xl border-2 border-[#d4af37] bg-[#080b16] shadow-[0_0_45px_rgba(212,175,55,0.4)] transition-all duration-300"
+      className="group relative aspect-[3/4] w-full max-w-lg overflow-hidden rounded-2xl border-2 border-[#d4af37] bg-[#080b16] shadow-[0_0_45px_rgba(212,175,55,0.4)] transition-all duration-300"
     >
       {/* Official Poster Image Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -143,7 +143,7 @@ export default function AboutEvent() {
 
           <SplitText
             text="HOGWARTS LEGACY: THE MAGIC BEGINS."
-            className="mt-3 text-balance font-harry text-4xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-6xl"
+            className="mt-3 text-balance font-harry text-3xl font-bold text-[#f4e8c1] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-5xl lg:text-6xl"
           />
         </div>
 

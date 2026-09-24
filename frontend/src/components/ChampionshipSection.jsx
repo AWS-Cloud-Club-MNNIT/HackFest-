@@ -5,7 +5,7 @@ const HOUSES = [
   { name: 'Gryffindor', logo: '/images/house/gryffindor.png', borderColor: 'border-[#740001]/60', bg: 'bg-[#740001]/30', color: 'text-[#eeba30]' },
   { name: 'Slytherin', logo: '/images/house/slytherin.png', borderColor: 'border-[#1a472a]/60', bg: 'bg-[#1a472a]/30', color: 'text-[#aaaaaa]' },
   { name: 'Ravenclaw', logo: '/images/house/ravenclaw.png', borderColor: 'border-[#0e1a40]/60', bg: 'bg-[#0e1a40]/30', color: 'text-[#946b2d]' },
-  { name: 'Hufflepuff', logo: '/images/house/hufflepuff.png', borderColor: 'border-[#ecb939]/60', bg: 'bg-[#372e29]/30', color: 'text-[#ecb939]' },
+  { name: 'Hufflepuff', logo: '/images/house/hufflepuff.png', borderColor: 'border-[#8c6a15]/60', bg: 'bg-[#8c6a15]/30', color: 'text-[#ecb939]' },
 ]
 
 const STAGES = [
